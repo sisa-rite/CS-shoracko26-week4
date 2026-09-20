@@ -29,7 +29,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80" # expose only frontend to the host
+      - "80:8080" # expose only frontend to the host
 
 volumes:
   db_data:
