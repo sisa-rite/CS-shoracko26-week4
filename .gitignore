@@ -1,0 +1,8 @@
+# Skutečná hesla - do gitu nikdy (zadání, bod 12)
+.env
+
+# macOS
+.DS_Store
+
+# Lokální nastavení editoru
+.vscode/settings.json

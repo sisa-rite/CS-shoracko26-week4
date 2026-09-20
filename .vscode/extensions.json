@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml",
+    "adpyke.vscode-sql-formatter",
+    "ms-azuretools.vscode-docker",
+    "raynigon.nginx-formatter",
+    "EditorConfig.EditorConfig"
+  ]
+}
