@@ -3,6 +3,8 @@ FROM nginx:1.27-alpine
 
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
 COPY frontend/index.html /usr/share/nginx/html/index.html
+COPY frontend/docs-page/docs.html /usr/share/nginx/html/docs.html
+COPY frontend/docs-page/img/ /usr/share/nginx/html/img/
 
 RUN chgrp -R 0 /usr/share/nginx/html /etc/nginx /var/cache/nginx \
     && chmod -R g=u /usr/share/nginx/html /etc/nginx /var/cache/nginx
