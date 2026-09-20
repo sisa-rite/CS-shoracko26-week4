@@ -1,70 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documentation — Week 4</title>
-<style>
-  :root {
-    --bg: #e9edf0; --surface: #fff; --ink: #16222e;
-    --muted: #5a6b7a; --rule: #ccd6dd; --accent: #1f5f8b;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 2.5rem 1.25rem 5rem;
-    background: var(--bg); color: var(--ink);
-    font: 16px/1.65 "Iowan Old Style", Palatino, Georgia, serif;
-  }
-  main { max-width: 52rem; margin: 0 auto; }
-  a { color: var(--accent); }
-  h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 .3rem; font-weight: 600; }
-  .lede { color: var(--muted); margin: 0 0 2rem; }
-  section {
-    background: var(--surface); border: 1px solid var(--rule);
-    padding: 1.4rem 1.6rem; margin-bottom: 1.25rem;
-  }
-  h2 { font-size: 1.15rem; margin: 0 0 .8rem; font-weight: 600; }
-  h3 { font-size: .98rem; margin: 1.5rem 0 .4rem; font-weight: 600; }
-  p, li { max-width: 42rem; }
-  pre {
-    background: #f4f7f9; border: 1px solid var(--rule);
-    padding: .8rem 1rem; overflow-x: auto;
-    font: .82rem/1.5 ui-monospace, Menlo, Consolas, monospace;
-  }
-  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .88em; }
-  figure { margin: 1.2rem 0; }
-  figure img {
-    max-width: 100%; display: block;
-    border: 1px solid var(--rule); border-radius: 2px;
-  }
-  figcaption { font-size: .85rem; color: var(--muted); margin-top: .4rem; }
-  nav.top { margin-bottom: 1.5rem; font-size: .92rem; }
-  table { border-collapse: collapse; margin: 1rem 0; font-size: .92rem; }
-  th, td { text-align: left; padding: .4rem 1.2rem .4rem 0; border-bottom: 1px solid var(--rule); }
-  th { color: var(--muted); font-weight: 600; }
-</style>
-</head>
-<body>
-<main>
-  <nav class="top"><a href="/">← Back to the application</a></nav>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documentation — Week 4</title>
+    <style>
+      :root {
+        --bg: #e9edf0;
+        --surface: #fff;
+        --ink: #16222e;
+        --muted: #5a6b7a;
+        --rule: #ccd6dd;
+        --accent: #1f5f8b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 5rem;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.65 "Iowan Old Style",
+          Palatino,
+          Georgia,
+          serif;
+      }
+      main {
+        max-width: 52rem;
+        margin: 0 auto;
+      }
+      a {
+        color: var(--accent);
+      }
+      h1 {
+        font-size: 1.8rem;
+        line-height: 1.2;
+        margin: 0 0 0.3rem;
+        font-weight: 600;
+      }
+      .lede {
+        color: var(--muted);
+        margin: 0 0 2rem;
+      }
+      section {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1.25rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      h3 {
+        font-size: 0.98rem;
+        margin: 1.5rem 0 0.4rem;
+        font-weight: 600;
+      }
+      p,
+      li {
+        max-width: 42rem;
+      }
+      pre {
+        background: #f4f7f9;
+        border: 1px solid var(--rule);
+        padding: 0.8rem 1rem;
+        overflow-x: auto;
+        font:
+          0.82rem/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      code {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.88em;
+      }
+      figure {
+        margin: 1.2rem 0;
+      }
+      figure img {
+        max-width: 100%;
+        display: block;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+      }
+      figcaption {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+      nav.top {
+        margin-bottom: 1.5rem;
+        font-size: 0.92rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.4rem 1.2rem 0.4rem 0;
+        border-bottom: 1px solid var(--rule);
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav class="top"><a href="/">← Back to the application</a></nav>
 
-  <h1>Week 4 — running my three-container app on Rahti</h1>
-  <p class="lede">Simona Horáčková · Cloud Services · 20 September 2026</p>
+      <h1>Week 4 — Documentation</h1>
 
-  <section>
-    <h2>1. What the application does</h2>
-    <p>
-      It is the same three-container app I built for the Docker Compose
-      exercise, now running on Rahti. There is an nginx frontend that serves
-      the page you are reading, a Flask backend that gives a REST API, and a
-      MySQL 8.4 database that keeps its data on a persistent volume.
-    </p>
-    <p>
-      Only the frontend has a Route, so only the frontend can be reached from
-      the internet. The backend and the database only have Services, which
-      work inside the project.
-    </p>
-    <pre>Internet -> Route -> Service frontend:8080 -> nginx Pod
+      <section>
+        <h2>1. What the application does</h2>
+        <p>
+          It is the same three-container app I built for the Docker Compose
+          exercise, now running on Rahti. There is an nginx frontend that serves
+          the page you are reading, a Flask backend that gives a REST API, and a
+          MySQL 8.4 database that keeps its data on a persistent volume.
+        </p>
+        <p>
+          Only the frontend has a Route, so only the frontend can be reached
+          from the internet. The backend and the database only have Services,
+          which work inside the project.
+        </p>
+        <pre>
+Internet -> Route -> Service frontend:8080 -> nginx Pod
                                    |  proxy_pass /api
                                    v
                        Service backend:8000 -> Flask Pod(s)
@@ -72,516 +142,517 @@
                                                    v
                                        Service db:3306 -> MySQL Pod
                                                               |
-                                                     PVC db-data (standard-csi)</pre>
-    <p>
-      The frontend does not know any Pod IP address. In
-      <code>nginx.conf</code> there is only one line that points to the
-      backend, and it uses the Service name:
-    </p>
-    <pre>location /api {
+                                                     PVC db-data (standard-csi)</pre
+        >
+        <p>
+          The frontend does not know any Pod IP address. In
+          <code>nginx.conf</code> there is only one line that points to the
+          backend, and it uses the Service name:
+        </p>
+        <pre>
+location /api {
     proxy_pass http://backend:8000;
-}</pre>
+}</pre
+        >
 
-    <h3>Read and write operations</h3>
-    <p>
-      The endpoint <code>/api/info</code> does both things that the assignment
-      asks for. First it writes: every page load inserts one row into the
-      <code>visits</code> table. Then it reads: it runs
-      <code>SELECT NOW()</code> to get the MySQL server time and counts the
-      rows in <code>visits</code>. Both results are shown on the front page.
-    </p>
-    <p>
-      There is also a guestbook. When you save a message it is sent with POST
-      to <code>/api/messages</code> and stored in the database. I used it a
-      lot for testing, because a message is easier to recognise than a number.
-    </p>
-    <p>
-      I first ran everything locally with Docker Compose to check that the
-      code works before moving to Rahti.
-    </p>
-    <figure>
-      <img src="img/01-local-run.jpg" alt="The app running on localhost:8080">
-      <figcaption>
-        Local test on <code>localhost:8080</code>. Version says
-        <code>dev</code> because locally the version is not set. The counter
-        was 7 and one test message was saved.
-      </figcaption>
-    </figure>
+        <h3>Read and write operations</h3>
+        <p>
+          The endpoint <code>/api/info</code> does both things that the
+          assignment asks for. First it writes: every page load inserts one row
+          into the <code>visits</code> table. Then it reads: it runs
+          <code>SELECT NOW()</code> to get the MySQL server time and counts the
+          rows in <code>visits</code>. Both results are shown on the front page.
+        </p>
+        <p>
+          There is also a guestbook. When you save a message it is sent with
+          POST to <code>/api/messages</code> and stored in the database. I used
+          it a lot for testing, because a message is easier to recognise than a
+          number.
+        </p>
+        <p>
+          I first ran everything locally with Docker Compose to check that the
+          code works before moving to Rahti.
+        </p>
+        <figure>
+          <img
+            src="img/01-local-run.jpg"
+            alt="The app running on localhost:8080"
+          />
+          <figcaption>
+            Local test on <code>localhost:8080</code>. Version says
+            <code>dev</code> because locally the version is not set. The counter
+            was 7 and one test message was saved.
+          </figcaption>
+        </figure>
 
-    <h3>Images</h3>
-    <p>
-      Both images are built for <code>linux/amd64</code> and pushed to Docker
-      Hub as public repositories, so Rahti can pull them.
-    </p>
-    <figure>
-      <img src="img/02-dockerhub.jpg" alt="Docker Hub repositories">
-      <figcaption>
-        <code>shoracko26/lemp-frontend</code> and
-        <code>shoracko26/lemp-backend</code> on Docker Hub, both public.
-      </figcaption>
-    </figure>
-  </section>
+        <h3>Images</h3>
+        <p>
+          Both images are built for <code>linux/amd64</code> and pushed to
+          Docker Hub as public repositories, so Rahti can pull them.
+        </p>
+        <figure>
+          <img src="img/02-dockerhub.jpg" alt="Docker Hub repositories" />
+          <figcaption>
+            <code>shoracko26/lemp-frontend</code> and
+            <code>shoracko26/lemp-backend</code> on Docker Hub, both public.
+          </figcaption>
+        </figure>
+      </section>
 
-  <section>
-    <h2>2. Evidence: frontend → backend → database</h2>
-    <p>
-      I applied all the manifests from the <code>k8s/</code> folder and all
-      three Pods started.
-    </p>
-    <figure>
-      <img src="img/03-pods-and-route.jpg" alt="Pods running and the route">
-      <figcaption>
-        All three Pods are <code>1/1 Running</code> with 0 restarts, and
-        <code>oc get route frontend</code> shows the public address
-        <code>frontend-cs-rahti-project.2.rahtiapp.fi</code>.
-      </figcaption>
-    </figure>
-    <p>
-      Then I opened the Route in the browser. The MySQL server time and the
-      MySQL version cannot be made up by nginx or by Flask — they can only
-      come from the database. So if they appear on the page, the whole chain
-      works.
-    </p>
-    <figure>
-      <img src="img/04-app-on-rahti.jpg" alt="The app running on Rahti">
-      <figcaption>
-        The app on Rahti. MySQL time 12:32:56, MySQL version 8.4.11, 16 page
-        views, and the name of the backend Pod that answered. Three guestbook
-        messages are already saved.
-      </figcaption>
-    </figure>
-    <p>
-      I also reloaded the page several times and the counter kept growing,
-      which shows that the write really happens on every request and is not
-      just a static number.
-    </p>
-  </section>
+      <section>
+        <h2>2. Evidence: frontend → backend → database</h2>
+        <p>
+          I applied all the manifests from the <code>k8s/</code> folder and all
+          three Pods started.
+        </p>
+        <figure>
+          <img
+            src="img/03-pods-and-route.jpg"
+            alt="Pods running and the route"
+          />
+          <figcaption>
+            All three Pods are <code>1/1 Running</code> with 0 restarts, and
+            <code>oc get route frontend</code> shows the public address
+            <code>frontend-cs-rahti-project.2.rahtiapp.fi</code>.
+          </figcaption>
+        </figure>
+        <p>
+          Then I opened the Route in the browser. The MySQL server time and the
+          MySQL version cannot be made up by nginx or by Flask — they can only
+          come from the database. So if they appear on the page, the whole chain
+          works.
+        </p>
+        <figure>
+          <img src="img/04-app-on-rahti.jpg" alt="The app running on Rahti" />
+          <figcaption>
+            The app on Rahti. MySQL time 12:32:56, MySQL version 8.4.11, 16 page
+            views, and the name of the backend Pod that answered. Three
+            guestbook messages are already saved.
+          </figcaption>
+        </figure>
+        <p>
+          I also reloaded the page several times and the counter kept growing,
+          which shows that the write really happens on every request and is not
+          just a static number.
+        </p>
+      </section>
 
-  <section>
-    <h2>3. Evidence: database persistence</h2>
-    <p>
-      The database uses a PersistentVolumeClaim called <code>db-data</code>,
-      2 Gi from the <code>standard-csi</code> storage class. To test that the
-      data survives, I deleted the MySQL Pod on purpose.
-    </p>
-    <figure>
-      <img src="img/05-delete-db-pod.jpg" alt="Deleting the database pod">
-      <figcaption>
-        <code>oc delete pod -l app=db</code>. The old Pod
-        <code>db-db8ccc9dd-bqf47</code> was deleted and a new one
-        <code>db-db8ccc9dd-q9h7w</code> started and became ready in 23
-        seconds.
-      </figcaption>
-    </figure>
-    <figure>
-      <img src="img/06-after-db-delete.jpg" alt="The app after the database pod was deleted">
-      <figcaption>
-        The page after the new Pod started. All three messages from 12:28,
-        12:29 and 12:32 are still there, and the counter continued from 19
-        instead of starting again from 1.
-      </figcaption>
-    </figure>
-    <table>
-      <tr><th></th><th>before</th><th>after</th></tr>
-      <tr><td>MySQL Pod</td><td>db-db8ccc9dd-bqf47</td><td>db-db8ccc9dd-q9h7w</td></tr>
-      <tr><td>Page views</td><td>16</td><td>19</td></tr>
-      <tr><td>Guestbook</td><td>3 messages</td><td>same 3 messages</td></tr>
-    </table>
-    <p>
-      The Pod is really a different one (different name, age only a few
-      minutes), so the data is clearly not stored inside the container. It is
-      on the volume, and the new Pod mounted the same volume again.
-    </p>
+      <section>
+        <h2>3. Evidence: database persistence</h2>
+        <p>
+          The database uses a PersistentVolumeClaim called <code>db-data</code>,
+          2 Gi from the <code>standard-csi</code> storage class. To test that
+          the data survives, I deleted the MySQL Pod on purpose.
+        </p>
+        <figure>
+          <img src="img/05-delete-db-pod.jpg" alt="Deleting the database pod" />
+          <figcaption>
+            <code>oc delete pod -l app=db</code>. The old Pod
+            <code>db-db8ccc9dd-bqf47</code> was deleted and a new one
+            <code>db-db8ccc9dd-q9h7w</code> started and became ready in 23
+            seconds.
+          </figcaption>
+        </figure>
+        <figure>
+          <img
+            src="img/06-after-db-delete.jpg"
+            alt="The app after the database pod was deleted"
+          />
+          <figcaption>
+            The page after the new Pod started. All three messages from 12:28,
+            12:29 and 12:32 are still there, and the counter continued from 19
+            instead of starting again from 1.
+          </figcaption>
+        </figure>
+        <table>
+          <tr>
+            <th></th>
+            <th>before</th>
+            <th>after</th>
+          </tr>
+          <tr>
+            <td>MySQL Pod</td>
+            <td>db-db8ccc9dd-bqf47</td>
+            <td>db-db8ccc9dd-q9h7w</td>
+          </tr>
+          <tr>
+            <td>Page views</td>
+            <td>16</td>
+            <td>19</td>
+          </tr>
+          <tr>
+            <td>Guestbook</td>
+            <td>3 messages</td>
+            <td>same 3 messages</td>
+          </tr>
+        </table>
+        <p>
+          The Pod is really a different one (different name, age only a few
+          minutes), so the data is clearly not stored inside the container. It
+          is on the volume, and the new Pod mounted the same volume again.
+        </p>
 
-    <h3>How this is different from a Docker volume</h3>
-    <p>
-      In the Docker Compose exercise the volume was just a directory on the
-      one virtual machine where everything was running. Docker created it by
-      itself when the container asked for it, and it only existed on that
-      machine. If the VM was gone, the data was gone with it.
-    </p>
-    <p>
-      In Rahti the storage is its own object in the cluster. I do not say
-      where the disk should be or how to make it. I only write a
-      PersistentVolumeClaim that says "I want 2 Gi of this class" and the
-      cluster gives it to me from Ceph storage. The volume belongs to the
-      claim, not to a Pod, so any Pod that the scheduler starts anywhere in
-      the cluster can mount it again. That is exactly why the data survived.
-    </p>
-  </section>
+        <h3>How this is different from a Docker volume</h3>
+        <p>
+          In the Docker Compose exercise the volume was just a directory on the
+          one virtual machine where everything was running. Docker created it by
+          itself when the container asked for it, and it only existed on that
+          machine. If the VM was gone, the data was gone with it.
+        </p>
+        <p>
+          In Rahti the storage is its own object in the cluster. I do not say
+          where the disk should be or how to make it. I only write a
+          PersistentVolumeClaim that says "I want 2 Gi of this class" and the
+          cluster gives it to me from Ceph storage. The volume belongs to the
+          claim, not to a Pod, so any Pod that the scheduler starts anywhere in
+          the cluster can mount it again. That is exactly why the data survived.
+        </p>
+      </section>
 
-  <section>
-    <h2>4. Pod recovery experiment</h2>
-    <p>I deleted the backend Pod manually and watched what happened.</p>
-    <table>
-      <tr><td>Deleted Pod</td><td><code>backend-77b48c9bff-zgddb</code> (12 min old)</td></tr>
-      <tr><td>New Pod</td><td><code>backend-77b48c9bff-8lnvr</code>, ready in 13 s</td></tr>
-    </table>
-    <figure>
-      <img src="img/07-backend-recovery-events.jpg" alt="Events during pod recovery">
-      <figcaption>
-        Events from <code>oc get events</code> during the recovery.
-      </figcaption>
-    </figure>
-    <figure>
-      <img src="img/08-new-backend-pod.jpg" alt="The page showing the new backend pod name">
-      <figcaption>
-        After the recovery the page shows a different backend Pod name,
-        <code>backend-77b48c9bff-8lnvr</code>, and the counter continues from
-        20. The user does not notice anything.
-      </figcaption>
-    </figure>
+      <section>
+        <h2>4. Pod recovery experiment</h2>
+        <p>I deleted the backend Pod manually and watched what happened.</p>
+        <table>
+          <tr>
+            <td>Deleted Pod</td>
+            <td><code>backend-77b48c9bff-zgddb</code> (12 min old)</td>
+          </tr>
+          <tr>
+            <td>New Pod</td>
+            <td><code>backend-77b48c9bff-8lnvr</code>, ready in 13 s</td>
+          </tr>
+        </table>
+        <figure>
+          <img
+            src="img/07-backend-recovery-events.jpg"
+            alt="Events during pod recovery"
+          />
+          <figcaption>
+            Events from <code>oc get events</code> during the recovery.
+          </figcaption>
+        </figure>
+        <figure>
+          <img
+            src="img/08-new-backend-pod.jpg"
+            alt="The page showing the new backend pod name"
+          />
+          <figcaption>
+            After the recovery the page shows a different backend Pod name,
+            <code>backend-77b48c9bff-8lnvr</code>, and the counter continues
+            from 20. The user does not notice anything.
+          </figcaption>
+        </figure>
 
-    <h3>Why does a new Pod appear?</h3>
-    <p>
-      Because in Kubernetes I do not start Pods, I only describe how many
-      should exist. The Deployment says <code>replicas: 1</code>. A controller
-      compares all the time how many Pods with the label
-      <code>app: backend</code> are running with how many should be running.
-      When I deleted the Pod, the real state was 0 and the wanted state was 1,
-      so the controller made a new one.
-    </p>
+        <h3>Why does a new Pod appear?</h3>
+        <p>
+          Because in Kubernetes I do not start Pods, I only describe how many
+          should exist. The Deployment says <code>replicas: 1</code>. A
+          controller compares all the time how many Pods with the label
+          <code>app: backend</code> are running with how many should be running.
+          When I deleted the Pod, the real state was 0 and the wanted state was
+          1, so the controller made a new one.
+        </p>
 
-    <h3>Which resource is responsible?</h3>
-    <p>
-      The <strong>ReplicaSet</strong>. You can even see it in the Pod names:
-      the old and the new Pod both start with
-      <code>backend-77b48c9bff</code>, which is the name of the ReplicaSet
-      that owns them. The Deployment is one level above — it creates the
-      ReplicaSet and makes a new one when the app version changes.
-    </p>
-    <p>
-      In the events there is something I did not expect. Creating the new Pod
-      failed five times with
-      <code>exceeded quota: crq-2020448, requested: limits.cpu=500m, used:
-      limits.cpu=3700m, limited: limits.cpu=4</code>. The project CPU quota
-      was full, because the old Pod was still terminating and still holding
-      its CPU. Only when the old Pod was really gone did the new one start.
-      I think this actually shows the idea very well: the ReplicaSet did not
-      try once and give up. It kept trying until the wanted state was
-      possible.
-    </p>
-  </section>
+        <h3>Which resource is responsible?</h3>
+        <p>
+          The <strong>ReplicaSet</strong>. You can even see it in the Pod names:
+          the old and the new Pod both start with
+          <code>backend-77b48c9bff</code>, which is the name of the ReplicaSet
+          that owns them. The Deployment is one level above — it creates the
+          ReplicaSet and makes a new one when the app version changes.
+        </p>
+        <p>
+          In the events there is something I did not expect. Creating the new
+          Pod failed five times with
+          <code
+            >exceeded quota: crq-2020448, requested: limits.cpu=500m, used:
+            limits.cpu=3700m, limited: limits.cpu=4</code
+          >. The project CPU quota was full, because the old Pod was still
+          terminating and still holding its CPU. Only when the old Pod was
+          really gone did the new one start. I think this actually shows the
+          idea very well: the ReplicaSet did not try once and give up. It kept
+          trying until the wanted state was possible.
+        </p>
+      </section>
 
-  <section>
-    <h2>5. Scaling experiment</h2>
-    <p>
-      First I had to lower the CPU limit of the backend from 500m to 200m,
-      because of the quota above. After that three replicas fit.
-    </p>
-    <figure>
-      <img src="img/09-rolling-update-pods.jpg" alt="Pods during the rollout after changing CPU limits">
-      <figcaption>
-        Changing the CPU limits already caused a small rolling update. The new
-        Pod <code>backend-7bcc956479-lxc7l</code> became <code>1/1</code> at 17
-        seconds and only after that the old <code>backend-77b48c9bff-8lnvr</code>
-        went to <code>Terminating</code>.
-      </figcaption>
-    </figure>
-    <pre>oc scale deployment/backend --replicas=3</pre>
-    <figure>
-      <img src="img/10-scaling-loadbalance.jpg" alt="Three backend pods and requests going to all of them">
-      <figcaption>
-        Three backend Pods running, and eight requests to
-        <code>/api/info</code> in a row. The <code>pod</code> field in the
-        answer is not the same every time: <code>gx84n</code> answered three
-        times, <code>lxc7l</code> three times and <code>mlm9m</code> twice.
-      </figcaption>
-    </figure>
+      <section>
+        <h2>5. Scaling experiment</h2>
+        <p>
+          First I had to lower the CPU limit of the backend from 500m to 200m,
+          because of the quota above. After that three replicas fit.
+        </p>
+        <figure>
+          <img
+            src="img/09-rolling-update-pods.jpg"
+            alt="Pods during the rollout after changing CPU limits"
+          />
+          <figcaption>
+            Changing the CPU limits already caused a small rolling update. The
+            new Pod <code>backend-7bcc956479-lxc7l</code> became
+            <code>1/1</code> at 17 seconds and only after that the old
+            <code>backend-77b48c9bff-8lnvr</code> went to
+            <code>Terminating</code>.
+          </figcaption>
+        </figure>
+        <pre>oc scale deployment/backend --replicas=3</pre>
+        <figure>
+          <img
+            src="img/10-scaling-loadbalance.jpg"
+            alt="Three backend pods and requests going to all of them"
+          />
+          <figcaption>
+            Three backend Pods running, and eight requests to
+            <code>/api/info</code> in a row. The <code>pod</code> field in the
+            answer is not the same every time: <code>gx84n</code> answered three
+            times, <code>lxc7l</code> three times and <code>mlm9m</code> twice.
+          </figcaption>
+        </figure>
 
-    <h3>How can the frontend still find the backend?</h3>
-    <p>
-      I did not change anything in the frontend. No new address, no restart,
-      nothing. nginx still has only <code>proxy_pass
-      http://backend:8000</code>.
-    </p>
-    <p>
-      This works because <code>backend</code> is a Service, not a Pod. The
-      Service has one stable ClusterIP and a DNS name inside the project, and
-      it sends the connections to whichever Pods have the label
-      <code>app: backend</code> right now. Pod IP addresses change every time
-      a Pod is replaced, and they are not written anywhere in my
-      configuration. That is why scaling is invisible to the frontend.
-    </p>
-    <p>
-      I scaled the backend back to 1 replica after the experiment. I did not
-      scale the database, because its volume is ReadWriteOnce and two MySQL
-      servers cannot use the same data directory anyway.
-    </p>
-  </section>
+        <h3>How can the frontend still find the backend?</h3>
+        <p>
+          I did not change anything in the frontend. No new address, no restart,
+          nothing. nginx still has only
+          <code>proxy_pass http://backend:8000</code>.
+        </p>
+        <p>
+          This works because <code>backend</code> is a Service, not a Pod. The
+          Service has one stable ClusterIP and a DNS name inside the project,
+          and it sends the connections to whichever Pods have the label
+          <code>app: backend</code> right now. Pod IP addresses change every
+          time a Pod is replaced, and they are not written anywhere in my
+          configuration. That is why scaling is invisible to the frontend.
+        </p>
+        <p>
+          I scaled the backend back to 1 replica after the experiment. I did not
+          scale the database, because its volume is ReadWriteOnce and two MySQL
+          servers cannot use the same data directory anyway.
+        </p>
+      </section>
 
-  <section>
-    <h2>6. Application update</h2>
-    <p>
-      I changed the heading on the front page, built new images with the tag
-      <code>1.0.1</code> and pushed them.
-    </p>
-    <pre>docker build --platform linux/amd64 --build-arg APP_VERSION=1.0.1 \
+      <section>
+        <h2>6. Application update</h2>
+        <p>
+          I changed the heading on the front page, built new images with the tag
+          <code>1.0.1</code> and pushed them.
+        </p>
+        <pre>
+docker build --platform linux/amd64 --build-arg APP_VERSION=1.0.1 \
   -f backend/Dockerfile -t shoracko26/lemp-backend:1.0.1 .
 docker build --platform linux/amd64 \
   -f frontend/Dockerfile -t shoracko26/lemp-frontend:1.0.1 .
 docker push shoracko26/lemp-backend:1.0.1
-docker push shoracko26/lemp-frontend:1.0.1</pre>
-    <p>
-      Pushing alone changed nothing on Rahti. The old version kept running
-      until I told the cluster to use the new one:
-    </p>
-    <pre>oc patch configmap app-config -p '{"data":{"APP_VERSION":"1.0.1"}}'
+docker push shoracko26/lemp-frontend:1.0.1</pre
+        >
+        <p>
+          Pushing alone changed nothing on Rahti. The old version kept running
+          until I told the cluster to use the new one:
+        </p>
+        <pre>
+oc patch configmap app-config -p '{"data":{"APP_VERSION":"1.0.1"}}'
 oc set image deployment/backend  backend=shoracko26/lemp-backend:1.0.1
-oc set image deployment/frontend frontend=shoracko26/lemp-frontend:1.0.1</pre>
-    <figure>
-      <img src="img/11-update-rollout.jpg" alt="Pods during the rollout">
-      <figcaption>
-        The rollout. New Pods <code>backend-97bdc6c4b-x5qsd</code> and
-        <code>frontend-7fb554846d-s2glg</code> start first, and the old ones
-        go to <code>Terminating</code> only after the new ones are
-        <code>1/1</code>.
-      </figcaption>
-    </figure>
+oc set image deployment/frontend frontend=shoracko26/lemp-frontend:1.0.1</pre
+        >
+        <figure>
+          <img src="img/11-update-rollout.jpg" alt="Pods during the rollout" />
+          <figcaption>
+            The rollout. New Pods <code>backend-97bdc6c4b-x5qsd</code> and
+            <code>frontend-7fb554846d-s2glg</code> start first, and the old ones
+            go to <code>Terminating</code> only after the new ones are
+            <code>1/1</code>.
+          </figcaption>
+        </figure>
 
-    <h3>What happens to the old and new Pods</h3>
-    <p>
-      The order in the output is the interesting part. The new backend Pod was
-      ready at 17 s and only then the old one started terminating. The
-      frontend did the same: new Pod ready at 16 s, old one terminating after
-      that. So there was never a moment without a working Pod and the page
-      never went down.
-    </p>
-    <p>
-      The readiness probe is what makes this safe. Until the probe passes, the
-      Service does not send any traffic to the new Pod and the Deployment does
-      not continue.
-    </p>
-    <p>
-      The name prefixes also changed: backend from <code>7bcc956479</code> to
-      <code>97bdc6c4b</code>, frontend from <code>75766cb4d7</code> to
-      <code>7fb554846d</code>. Every version gets its own ReplicaSet and the
-      old one stays with 0 replicas, which is why
-      <code>oc rollout undo</code> can go back.
-    </p>
-    <figure>
-      <img src="img/12-after-update.jpg" alt="The page after the update">
-      <figcaption>
-        After the update: the new heading, application version
-        <code>1.0.1</code>, and the new backend Pod
-        <code>backend-97bdc6c4b-x5qsd</code>. The guestbook messages are still
-        there, because the database was not touched.
-      </figcaption>
-    </figure>
-    <p>
-      One thing I noticed: the heading came from the new image, but the
-      version number on the page came from the ConfigMap patch. So
-      configuration and code can be changed separately. If I only wanted to
-      change the version text, I would not need to build anything at all.
-    </p>
-  </section>
+        <h3>What happens to the old and new Pods</h3>
+        <p>
+          The order in the output is the interesting part. The new backend Pod
+          was ready at 17 s and only then the old one started terminating. The
+          frontend did the same: new Pod ready at 16 s, old one terminating
+          after that. So there was never a moment without a working Pod and the
+          page never went down.
+        </p>
+        <p>
+          The readiness probe is what makes this safe. Until the probe passes,
+          the Service does not send any traffic to the new Pod and the
+          Deployment does not continue.
+        </p>
+        <p>
+          The name prefixes also changed: backend from
+          <code>7bcc956479</code> to <code>97bdc6c4b</code>, frontend from
+          <code>75766cb4d7</code> to <code>7fb554846d</code>. Every version gets
+          its own ReplicaSet and the old one stays with 0 replicas, which is why
+          <code>oc rollout undo</code> can go back.
+        </p>
+        <figure>
+          <img src="img/12-after-update.jpg" alt="The page after the update" />
+          <figcaption>
+            After the update: the new heading, application version
+            <code>1.0.1</code>, and the new backend Pod
+            <code>backend-97bdc6c4b-x5qsd</code>. The guestbook messages are
+            still there, because the database was not touched.
+          </figcaption>
+        </figure>
+        <p>
+          One thing I noticed: the heading came from the new image, but the
+          version number on the page came from the ConfigMap patch. So
+          configuration and code can be changed separately. If I only wanted to
+          change the version text, I would not need to build anything at all.
+        </p>
+      </section>
 
-  <section>
-    <h2>7. Configuration and secrets</h2>
-    <p>
-      Nothing is hard-coded in the images. The ConfigMap
-      <code>app-config</code> has the database host, port, database name, user
-      name and the application version. The Secret <code>db-secret</code> has
-      the MySQL root password and the application password.
-    </p>
-    <p>
-      The Secret is not in Git. I created it directly in the cluster:
-    </p>
-    <pre>oc create secret generic db-secret \
-  --from-literal=MYSQL_ROOT_PASSWORD='...' \
-  --from-literal=DB_PASSWORD='...'</pre>
-    <p>
-      In the repository there is only
-      <code>k8s/02-db-secret.example.yaml</code> with placeholder values, so
-      another student can see which keys are needed.
-    </p>
+      <section>
+        <h2>7. Configuration and secrets</h2>
+        <p>
+          Nothing is hard-coded in the images. The ConfigMap
+          <code>app-config</code> has the database host, port, database name,
+          user name and the application version. The Secret
+          <code>db-secret</code> has the MySQL root password and the application
+          password.
+        </p>
+        <h3>Why are ConfigMap and Secret two different things?</h3>
+        <p>
+          Not because one is encrypted — a Secret is only base64, and base64 is
+          not protection. They are different because the cluster treats them
+          differently. A Secret is its own resource type, so it can have its own
+          RBAC rules, it is kept out of normal listings and logs, and tools know
+          that they should be careful with it. A ConfigMap is just normal
+          project data that anybody in the project can read, and that is fine
+          for a database name or a port number.
+        </p>
+        <p>
+          One nice thing is that MySQL and the backend read the same password
+          from the same Secret key. So they cannot get out of sync, which could
+          easily happen if I wrote the password in two places.
+        </p>
+      </section>
 
-    <h3>Why are ConfigMap and Secret two different things?</h3>
-    <p>
-      Not because one is encrypted — a Secret is only base64, and base64 is
-      not protection. They are different because the cluster treats them
-      differently. A Secret is its own resource type, so it can have its own
-      RBAC rules, it is kept out of normal listings and logs, and tools know
-      that they should be careful with it. A ConfigMap is just normal project
-      data that anybody in the project can read, and that is fine for a
-      database name or a port number.
-    </p>
-    <p>
-      One nice thing is that MySQL and the backend read the same password from
-      the same Secret key. So they cannot get out of sync, which could easily
-      happen if I wrote the password in two places.
-    </p>
-  </section>
+      <section>
+        <h2>8. Problems I had and how I solved them</h2>
 
-  <section>
-    <h2>8. Problems I had and how I solved them</h2>
+        <h3>Containers do not run as root</h3>
+        <p>
+          This was the biggest one. Rahti gives every container a random user ID
+          that I cannot know in advance. My old images assumed root: nginx
+          listened on port 80, wrote its PID to
+          <code>/var/run/nginx.pid</code> and its temporary files to
+          <code>/var/cache/nginx</code>. None of that is allowed.
+        </p>
+        <p>
+          I changed nginx to listen on 8080 (ports under 1024 need root), moved
+          the PID file and all temp paths to <code>/tmp</code>, and in both
+          Dockerfiles I added <code>chgrp -R 0</code> and
+          <code>chmod -R g=u</code> on the app directories. The random user is
+          always in group 0, so if the group can write, it works whatever ID
+          Rahti picks.
+        </p>
 
-    <h3>Containers do not run as root</h3>
-    <p>
-      This was the biggest one. Rahti gives every container a random user ID
-      that I cannot know in advance. My old images assumed root: nginx
-      listened on port 80, wrote its PID to <code>/var/run/nginx.pid</code>
-      and its temporary files to <code>/var/cache/nginx</code>. None of that
-      is allowed.
-    </p>
-    <p>
-      I changed nginx to listen on 8080 (ports under 1024 need root), moved
-      the PID file and all temp paths to <code>/tmp</code>, and in both
-      Dockerfiles I added <code>chgrp -R 0</code> and <code>chmod -R
-      g=u</code> on the app directories. The random user is always in group 0,
-      so if the group can write, it works whatever ID Rahti picks.
-    </p>
+        <h3>Wrong CPU numbers</h3>
+        <p>
+          My first <code>oc apply</code> created the Deployments but no Pods
+          appeared at all. The error was in <code>oc get events</code>, not in
+          <code>oc get pods</code>:
+          <code
+            >cpu max limit to request ratio per Container is 5, but provided
+            ratio is 10</code
+          >
+          and
+          <code>minimum cpu usage per Container is 50m, but request is 20m</code
+          >. The project has a LimitRange with stricter rules than I expected. I
+          fixed the requests and limits in all three files and then it worked.
+        </p>
 
-    <h3>Wrong CPU numbers</h3>
-    <p>
-      My first <code>oc apply</code> created the Deployments but no Pods
-      appeared at all. The error was in <code>oc get events</code>, not in
-      <code>oc get pods</code>:
-      <code>cpu max limit to request ratio per Container is 5, but provided
-      ratio is 10</code> and <code>minimum cpu usage per Container is 50m,
-      but request is 20m</code>. The project has a LimitRange with stricter
-      rules than I expected. I fixed the requests and limits in all three
-      files and then it worked.
-    </p>
+        <h3>MySQL and lost+found</h3>
+        <p>
+          MySQL refuses to start if its data directory is not empty, and a fresh
+          volume already contains <code>lost+found</code>. The fix was to mount
+          the volume with <code>subPath: data</code>, so MySQL gets a clean
+          subfolder.
+        </p>
+        <h3>Wrong CPU architecture</h3>
+        <p>
+          I have a MacBook with an M2 chip, so <code>docker build</code> makes
+          arm64 images by default, but Rahti runs on x86. This would have been
+          nasty, because the image builds and pushes without any error and only
+          fails in the cluster with <code>exec format error</code>, which does
+          not say anything about architecture. I added
+          <code>--platform linux/amd64</code> to every build.
+        </p>
 
-    <h3>MySQL and lost+found</h3>
-    <p>
-      MySQL refuses to start if its data directory is not empty, and a fresh
-      volume already contains <code>lost+found</code>. The fix was to mount
-      the volume with <code>subPath: data</code>, so MySQL gets a clean
-      subfolder.
-    </p>
+        <h3>Project CPU quota</h3>
+        <p>
+          Described in the Pod recovery section. My week 2 and week 3 apps are
+          still running in the same project and they use most of the CPU quota,
+          so I had to lower the backend CPU limit before I could scale to three
+          replicas.
+        </p>
+      </section>
 
-    <h3>Rolling update on a ReadWriteOnce volume</h3>
-    <p>
-      The database Deployment needs <code>strategy: Recreate</code>. With the
-      normal rolling update the new Pod waits for the volume that the old Pod
-      still holds, and nothing ever finishes.
-    </p>
+      <section>
+        <h2>9. Rahti compared with Docker Compose on cPouta</h2>
+        <p>
+          It is the same three containers and the same application code. What is
+          really different is who makes the application exist, how the parts
+          find each other, and what happens when something breaks.
+        </p>
 
-    <h3>Wrong CPU architecture</h3>
-    <p>
-      I have a MacBook with an M2 chip, so <code>docker build</code> makes
-      arm64 images by default, but Rahti runs on x86. This would have been
-      nasty, because the image builds and pushes without any error and only
-      fails in the cluster with <code>exec format error</code>, which does not
-      say anything about architecture. I added
-      <code>--platform linux/amd64</code> to every build.
-    </p>
+        <h3>How it is deployed</h3>
+        <p>
+          On cPouta I first had to make a machine: launch an instance, attach a
+          floating IP, open ports in a security group, install Docker and run
+          <code>docker compose up</code>. The deployment was that list of
+          actions. Compose read my file once, created the containers, and then
+          it was finished — the file described a starting point, not something
+          anybody keeps checking.
+        </p>
+        <p>
+          On Rahti there is no machine in my picture at all. I send objects that
+          describe the state I want, and controllers keep reality the same as
+          that, all the time. This is why deleting a Pod is not a problem here:
+          the ReplicaSet sees the difference and fixes it. With Compose,
+          recovery was me noticing and typing a command, and if the VM itself
+          died there was nothing left to recover on.
+        </p>
 
-    <h3>Project CPU quota</h3>
-    <p>
-      Described in the Pod recovery section. My week 2 and week 3 apps are
-      still running in the same project and they use most of the CPU quota, so
-      I had to lower the backend CPU limit before I could scale to three
-      replicas.
-    </p>
-  </section>
+        <h3>How it is networked</h3>
+        <p>
+          Compose gave the three containers a private network on one host, where
+          <code>backend</code> meant that one container. It worked because there
+          was exactly one of everything, and it would stop working as soon as
+          there was not. In Rahti <code>backend</code> is a Service in front of
+          a changing group of Pods chosen by a label, which is why my scaling
+          test worked without changing the frontend at all.
+        </p>
+        <p>
+          Exposing the app also works the other way round. On cPouta I published
+          a port and then closed everything else with firewall rules I had to
+          remember. In Rahti nothing is reachable from outside unless a Route
+          says so, so the backend and the database are private by default, not
+          because I remembered a rule. The Route does HTTPS for me too.
+        </p>
 
-  <section>
-    <h2>9. Rahti compared with Docker Compose on cPouta</h2>
-    <p>
-      It is the same three containers and the same application code. What is
-      really different is who makes the application exist, how the parts find
-      each other, and what happens when something breaks.
-    </p>
+        <h3>How it is managed</h3>
+        <p>
+          Managing the cPouta version meant managing a server: SSH in, run
+          commands, read logs there, update the OS. Configuration was a
+          <code>.env</code> file on that machine, protected mostly by file
+          permissions.
+        </p>
+        <p>
+          On Rahti I work with objects through the API. Configuration is in a
+          ConfigMap, passwords are in a Secret with their own access control,
+          and neither is in Git. Logs and events come from the cluster instead
+          of from a host. An update is a controlled rollout with health checks
+          and a history I can roll back, instead of stopping containers and
+          starting new ones and hoping.
+        </p>
 
-    <h3>How it is deployed</h3>
-    <p>
-      On cPouta I first had to make a machine. Launch an instance, pick a
-      flavour, attach a floating IP, open ports in a security group, install
-      Docker, copy the project there and run <code>docker compose up</code>.
-      The deployment was that list of actions. Compose read my file once,
-      created the containers, and then it was finished. The file described a
-      starting point, not something that anybody keeps checking.
-    </p>
-    <p>
-      On Rahti there is no machine in my picture at all. I send objects that
-      describe the state I want, and controllers keep reality the same as
-      that, all the time. I never choose which node runs my Pods. This is why
-      deleting a Pod is not a problem here: the ReplicaSet sees the difference
-      and fixes it. With Compose, recovery was me noticing and typing a
-      command, and if the VM itself died there was nothing left to recover on.
-    </p>
-    <p>
-      The pieces are also separate now. Compose was one file with everything.
-      In Rahti the same information is split into Deployments, Services, a
-      Route, a PVC, a ConfigMap and a Secret, and each has its own life. I can
-      change the backend image without touching the storage or the passwords.
-    </p>
-
-    <h3>How it is networked</h3>
-    <p>
-      Compose gave the three containers a private network on one host, and
-      <code>backend</code> meant that one container. It worked because there
-      was exactly one of everything, and it would stop working as soon as
-      there was not.
-    </p>
-    <p>
-      In Rahti <code>backend</code> is a Service in front of a changing group
-      of Pods chosen by a label. That is why my scaling test worked without
-      changing the frontend. Three Pods, three IP addresses, and none of them
-      written anywhere. With Compose I would have had to put a load balancer
-      there myself.
-    </p>
-    <p>
-      Exposing the app is also the other way round. On cPouta I published a
-      port and then closed everything else with firewall rules I had to
-      remember. In Rahti nothing is reachable from outside unless a Route says
-      so, so the backend and the database are private by default, not because
-      I remembered a rule. The Route also does HTTPS for me. On the VM I would
-      have had to get a certificate and renew it.
-    </p>
-
-    <h3>How it is managed</h3>
-    <p>
-      Managing the cPouta version meant managing a server: SSH in, run
-      commands, read logs there, update the OS. Configuration was a
-      <code>.env</code> file next to the Compose file, and the passwords were
-      protected mostly by file permissions on a machine I looked after myself.
-    </p>
-    <p>
-      On Rahti I work with objects through the API. Configuration is in a
-      ConfigMap, passwords are in a Secret with their own access control, and
-      neither is in Git. Logs and events come from the cluster instead of from
-      a host. An update is a controlled rollout with health checks and a
-      history I can roll back, instead of stopping containers and starting new
-      ones and hoping.
-    </p>
-    <p>
-      Health checks are a real difference too. Compose could restart a
-      container that crashed, but it could not tell the difference between a
-      container that runs and a container that runs but is broken. The
-      liveness and readiness probes do both, and readiness is what keeps
-      traffic away from a Pod that started but cannot answer yet. I saw this
-      during the update.
-    </p>
-
-    <h3>What it costs</h3>
-    <p>
-      Compose is much easier to understand. One file, one machine, one place
-      where things can go wrong. Rahti gives resilience and repeatability
-      instead, but there are many more objects and the platform has rules that
-      my images must follow. The random user ID rule cost me the most time in
-      this exercise, and the CPU quota cost me a rebuild. I also cannot log in
-      anywhere, so every problem has to be found through the API. That is the
-      point of the platform, but it takes getting used to.
-    </p>
-  </section>
-
-  <section>
-    <h2>10. Source code</h2>
-    <p>
-      <a href="https://github.com/sisa-rite/CS-shoracko26-week4">github.com/sisa-rite/CS-shoracko26-week4</a>
-    </p>
-    <p>
-      The manifests are in <code>k8s/</code>, numbered in the order they
-      should be applied. <code>DEPLOY-RAHTI.md</code> explains how to deploy
-      the app from zero. No passwords or tokens are in the repository —
-      <code>.env</code> is in <code>.gitignore</code> and the Secret is only
-      there as an example file with placeholders.
-    </p>
-  </section>
-</main>
-</body>
+        <h3>What it costs</h3>
+        <p>
+          Compose is much easier to understand: one file, one machine, one place
+          where things can go wrong. Rahti gives resilience and repeatability
+          instead, but at the price of many more objects, platform rules my
+          images have to follow, and no host to log into when something breaks.
+        </p>
+      </section>
+    </main>
+  </body>
 </html>

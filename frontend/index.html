@@ -151,6 +151,12 @@
     <main>
       <h1>Three-tier demo running on Rahti - MAKE SOME CHANGE</h1>
       <a href="/docs.html">Read the deployment documentation</a>
+      <h2>
+        My github repository URL:
+        <a href="https://github.com/sisa-rite/CS-shoracko26-week4"
+          >https://github.com/sisa-rite/CS-shoracko26-week4</a
+        >
+      </h2>
 
       <section>
         <h2>Live from the database</h2>
@@ -177,11 +183,6 @@
           </div>
         </dl>
         <p class="note" id="info-note"></p>
-        <p class="note">
-          Each page load inserts a row into the <code>visits</code> table, so
-          the counter is the write operation and the timestamp above is the
-          read.
-        </p>
       </section>
 
       <section>
@@ -191,7 +192,7 @@
           <textarea
             id="body"
             maxlength="500"
-            placeholder="Leave a message — it is stored in MySQL on a persistent volume."
+            placeholder="Leave a message"
           ></textarea>
           <button type="submit">Save message</button>
           <p class="note" id="form-note"></p>
