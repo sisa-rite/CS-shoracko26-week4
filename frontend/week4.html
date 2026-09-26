@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rahti three-tier demo</title>
+    <style>
+      :root {
+        --bg: #e9edf0;
+        --surface: #fff;
+        --ink: #16222e;
+        --muted: #5a6b7a;
+        --rule: #ccd6dd;
+        --accent: #1f5f8b;
+        --good: #2e7d5b;
+        --bad: #a4343a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 "Iowan Old Style",
+          Palatino,
+          Georgia,
+          serif;
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+        margin: 0 0 0.35rem;
+        font-weight: 600;
+      }
+      .lede {
+        margin: 0 0 2rem;
+        color: var(--muted);
+        max-width: 34rem;
+      }
+      section {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      h2 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 0;
+        border-top: 1px solid var(--rule);
+      }
+      .row:first-child {
+        border-top: 0;
+      }
+      dt {
+        color: var(--muted);
+      }
+      dd {
+        margin: 0;
+        text-align: right;
+        word-break: break-all;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.88rem;
+      }
+      .count {
+        font-size: 1.05rem;
+        color: var(--accent);
+      }
+      dl {
+        margin: 0;
+      }
+      form {
+        display: grid;
+        gap: 0.65rem;
+      }
+      input,
+      textarea,
+      button {
+        font: inherit;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--rule);
+        background: #fff;
+        color: inherit;
+        border-radius: 2px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 4.5rem;
+      }
+      button {
+        justify-self: start;
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        padding-inline: 1.1rem;
+      }
+      button:hover {
+        background: #17496b;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      ul.entries {
+        list-style: none;
+        margin: 1.2rem 0 0;
+        padding: 0;
+      }
+      ul.entries li {
+        padding: 0.7rem 0;
+        border-top: 1px solid var(--rule);
+      }
+      .meta {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.2rem;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      .note {
+        margin: 0.3rem 0 0;
+        font-size: 0.9rem;
+      }
+      .note.error {
+        color: var(--bad);
+      }
+      .note.ok {
+        color: var(--good);
+      }
+      .empty {
+        color: var(--muted);
+        margin: 1.2rem 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Three-tier demo running on Rahti - MAKE SOME CHANGE</h1>
+      <a href="/docs.html">Read the deployment documentation</a>
+      <h2>
+        My github repository URL:
+        <a href="https://github.com/sisa-rite/CS-shoracko26-week4"
+          >https://github.com/sisa-rite/CS-shoracko26-week4</a
+        >
+      </h2>
+
+      <section>
+        <h2>Live from the database</h2>
+        <dl>
+          <div class="row">
+            <dt>MySQL server time</dt>
+            <dd id="db-time">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>MySQL version</dt>
+            <dd id="db-version">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Page views recorded</dt>
+            <dd id="visits" class="count">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Backend Pod that answered</dt>
+            <dd id="pod">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Application version</dt>
+            <dd id="version">loading…</dd>
+          </div>
+        </dl>
+        <p class="note" id="info-note"></p>
+      </section>
+
+      <section>
+        <h2>Guestbook</h2>
+        <form id="guestbook">
+          <input id="author" maxlength="64" placeholder="Your name" />
+          <textarea
+            id="body"
+            maxlength="500"
+            placeholder="Leave a message"
+          ></textarea>
+          <button type="submit">Save message</button>
+          <p class="note" id="form-note"></p>
+        </form>
+        <ul class="entries" id="entries"></ul>
+        <p class="empty" id="entries-empty" hidden>
+          No messages yet. Yours would be the first.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      async function loadInfo() {
+        const note = $("info-note");
+        try {
+          const res = await fetch("/api/info");
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          $("db-time").textContent = data.db_time;
+          $("db-version").textContent = data.db_version;
+          $("visits").textContent = data.visits;
+          $("pod").textContent = data.pod;
+          $("version").textContent = data.version;
+          note.textContent = "";
+          note.className = "note";
+        } catch (err) {
+          note.textContent =
+            "The backend could not reach the database: " + err.message;
+          note.className = "note error";
+        }
+      }
+
+      async function loadMessages() {
+        try {
+          const res = await fetch("/api/messages");
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          const list = $("entries");
+          list.innerHTML = "";
+          $("entries-empty").hidden = data.messages.length > 0;
+          for (const m of data.messages) {
+            const li = document.createElement("li");
+            const text = document.createElement("span");
+            text.textContent = m.body;
+            const meta = document.createElement("span");
+            meta.className = "meta";
+            meta.textContent = m.author + " · " + m.created_at;
+            li.append(text, meta);
+            list.append(li);
+          }
+        } catch (err) {
+          $("entries-empty").hidden = false;
+          $("entries-empty").textContent =
+            "Messages could not be loaded: " + err.message;
+        }
+      }
+
+      $("guestbook").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const note = $("form-note");
+        try {
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              author: $("author").value,
+              body: $("body").value,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          $("body").value = "";
+          note.textContent = "Saved by Pod " + data.pod + ".";
+          note.className = "note ok";
+          loadMessages();
+        } catch (err) {
+          note.textContent = err.message;
+          note.className = "note error";
+        }
+      });
+
+      loadInfo();
+      loadMessages();
+    </script>
+  </body>
+</html>

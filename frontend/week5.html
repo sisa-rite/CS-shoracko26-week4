@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week 5 - current weather</title>
+    <style>
+      :root {
+        --bg: #e9edf0;
+        --surface: #fff;
+        --ink: #16222e;
+        --muted: #5a6b7a;
+        --rule: #ccd6dd;
+        --accent: #1f5f8b;
+        --good: #2e7d5b;
+        --bad: #a4343a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 "Iowan Old Style",
+          Palatino,
+          Georgia,
+          serif;
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+        margin: 0 0 0.35rem;
+        font-weight: 600;
+      }
+      .lede {
+        margin: 0 0 2rem;
+        color: var(--muted);
+        max-width: 34rem;
+      }
+      section {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      h2 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 0;
+        border-top: 1px solid var(--rule);
+      }
+      .row:first-child {
+        border-top: 0;
+      }
+      dt {
+        color: var(--muted);
+      }
+      dd {
+        margin: 0;
+        text-align: right;
+        word-break: break-all;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.88rem;
+      }
+      .count {
+        font-size: 1.05rem;
+        color: var(--accent);
+      }
+      dl {
+        margin: 0 0 1rem;
+      }
+      button {
+        font: inherit;
+        padding: 0.55rem 1.1rem;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #17496b;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: progress;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .note {
+        margin: 0.6rem 0 0;
+        font-size: 0.9rem;
+      }
+      .note.error {
+        color: var(--bad);
+      }
+      .note.ok {
+        color: var(--good);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">&larr; Back to all assignments</a></p>
+      <h1>Week 5: current weather</h1>
+      <p class="lede">
+        The backend fetches this from the public Open-Meteo API and returns it
+        as clean JSON at <code>/api/weather</code>.
+      </p>
+
+      <section>
+        <h2>Weather right now</h2>
+        <dl>
+          <div class="row">
+            <dt>Location</dt>
+            <dd id="location">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Temperature</dt>
+            <dd id="temperature" class="count">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Conditions</dt>
+            <dd id="description">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Wind speed</dt>
+            <dd id="windspeed">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Observed at (UTC)</dt>
+            <dd id="observed">loading…</dd>
+          </div>
+          <div class="row">
+            <dt>Backend Pod that answered</dt>
+            <dd id="pod">loading…</dd>
+          </div>
+        </dl>
+        <button type="button" id="refresh">Refresh weather</button>
+        <p class="note" id="weather-note"></p>
+      </section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const fields = ["location", "temperature", "description", "windspeed", "observed", "pod"];
+
+      async function loadWeather() {
+        const note = $("weather-note");
+        const button = $("refresh");
+        button.disabled = true;
+        button.textContent = "Loading…";
+        note.textContent = "";
+        note.className = "note";
+        try {
+          const res = await fetch("/api/weather");
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          $("location").textContent = data.location;
+          $("temperature").textContent = data.temperature + " °C";
+          $("description").textContent = data.description;
+          $("windspeed").textContent = data.windspeed + " km/h";
+          $("observed").textContent = (data.observed_at || "").replace("T", " ");
+          $("pod").textContent = data.pod;
+          note.textContent = "Updated " + new Date().toLocaleTimeString() + ".";
+          note.className = "note ok";
+        } catch (err) {
+          for (const id of fields) {
+            if ($(id).textContent === "loading…") $(id).textContent = "–";
+          }
+          note.textContent =
+            "Sorry, the weather could not be loaded right now (" +
+            err.message + "). Please try again in a moment.";
+          note.className = "note error";
+        } finally {
+          button.disabled = false;
+          button.textContent = "Refresh weather";
+        }
+      }
+
+      $("refresh").addEventListener("click", loadWeather);
+      loadWeather();
+    </script>
+  </body>
+</html>
