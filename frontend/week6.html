@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week 6 - CI/CD and observability</title>
+    <style>
+      :root {
+        --bg: #e9edf0;
+        --surface: #fff;
+        --ink: #16222e;
+        --muted: #5a6b7a;
+        --rule: #ccd6dd;
+        --accent: #1f5f8b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 "Iowan Old Style",
+          Palatino,
+          Georgia,
+          serif;
+      }
+      main {
+        max-width: 52rem;
+        margin: 0 auto;
+      }
+      a {
+        color: var(--accent);
+      }
+      h1 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+        margin: 0 0 0.35rem;
+        font-weight: 600;
+      }
+      .lede {
+        margin: 0 0 2rem;
+        color: var(--muted);
+      }
+      section {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      h3 {
+        font-size: 0.98rem;
+        margin: 1.5rem 0 0.4rem;
+        font-weight: 600;
+      }
+      pre {
+        background: #f4f7f9;
+        border: 1px solid var(--rule);
+        padding: 0.8rem 1rem;
+        overflow-x: auto;
+        font:
+          0.82rem/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      code {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.88em;
+      }
+      figure {
+        margin: 1.2rem 0;
+      }
+      figure img {
+        max-width: 100%;
+        display: block;
+        border: 1px solid var(--rule);
+      }
+      figcaption {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+      .live {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      .live span {
+        color: var(--muted);
+        font-family: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">← All assignments</a></p>
+      <h1>Week 6 – CI/CD pipeline and observability</h1>
+      <p class="lede">Simona Horáčková · Cloud Services</p>
+
+      <section>
+        <h2>Running right now</h2>
+        <p>
+          This box asks the backend which commit it was built from. After every
+          push to <code>main</code> the value changes.
+        </p>
+        <div class="live">
+          <div><span>commit</span> <b id="commit">loading…</b></div>
+          <div><span>pod</span> <b id="pod">loading…</b></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Part A – Questions</h2>
+        <p>Coming soon.</p>
+      </section>
+
+      <section>
+        <h2>Part B – Automate and observe the app</h2>
+        <h3>1. The CI/CD pipeline</h3>
+        <p>Coming soon.</p>
+        <h3>2. Proof that a push changes the deployment</h3>
+        <p>Coming soon.</p>
+        <h3>3. Health checks</h3>
+        <p>Coming soon.</p>
+        <h3>4. Logs and an alert rule</h3>
+        <p>Coming soon.</p>
+        <h3>5. Problems and solutions</h3>
+        <p>Coming soon.</p>
+      </section>
+    </main>
+    <script>
+      fetch("/api/health")
+        .then((r) => r.json())
+        .then((d) => {
+          document.getElementById("commit").textContent = d.commit || "unknown";
+          document.getElementById("pod").textContent = d.pod;
+        })
+        .catch(() => {
+          document.getElementById("commit").textContent = "backend unavailable";
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+name: Build and deploy to Rahti
+
+# Robot starts on every push to main,
+# or by hand from the Actions tab ("Run workflow").
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  BACKEND_IMAGE: docker.io/shoracko26/lemp-backend
+  FRONTEND_IMAGE: docker.io/shoracko26/lemp-frontend
+  NAMESPACE: cs-rahti-project
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Short commit id (used as the image tag)
+        run: echo "TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: shoracko26
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: GIT_SHA=${{ env.TAG }}
+          tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}
+
+      - name: Build and push frontend (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}
+
+      - name: Install the oc client
+        run: |
+          curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar -xz oc
+          sudo mv oc /usr/local/bin/oc
+          oc version --client
+
+      - name: Log in to Rahti
+        run: oc login --token="${{ secrets.RAHTI_TOKEN }}" --server="${{ secrets.RAHTI_SERVER }}"
+
+      - name: Deploy the new images
+        run: |
+          oc -n "$NAMESPACE" set image deployment/backend backend="$BACKEND_IMAGE:$TAG"
+          oc -n "$NAMESPACE" set image deployment/frontend frontend="$FRONTEND_IMAGE:$TAG"
+
+      - name: Wait until the new pods are running
+        run: |
+          oc -n "$NAMESPACE" rollout status deployment/backend --timeout=180s
+          oc -n "$NAMESPACE" rollout status deployment/frontend --timeout=180s
+
+      - name: Show what is running now
+        run: |
+          oc -n "$NAMESPACE" get deployment backend frontend -o wide
+          oc -n "$NAMESPACE" get pods

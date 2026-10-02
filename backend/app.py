@@ -1,11 +1,15 @@
 """Backend REST API for the Rahti deployment exercise."""
 
+import json
+import logging
 import os
 import socket
+import sys
+import time
 
 import mysql.connector
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, g, jsonify, request
 
 app = Flask(__name__)
 
@@ -17,6 +21,57 @@ DB_NAME = os.getenv("DB_NAME", "appdb")
 
 APP_VERSION = os.getenv("APP_VERSION", "dev")
 POD_NAME = os.getenv("POD_NAME", socket.gethostname())
+
+GIT_SHA = os.getenv("GIT_SHA", "local")
+
+# --- Structured logging: one JSON line per request -------------------------
+log = logging.getLogger("backend")
+log.setLevel(logging.INFO)
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(logging.Formatter("%(message)s"))
+log.addHandler(_handler)
+log.propagate = False
+
+# Probes call these every few seconds; logging them would drown real traffic.
+QUIET_PATHS = {"/healthz", "/readyz"}
+
+# If this file exists inside the pod, /readyz answers 503 (used to test
+# the readiness probe on purpose: oc exec <pod> -- touch /tmp/not-ready).
+NOT_READY_FLAG = "/tmp/not-ready"
+
+
+@app.before_request
+def start_timer():
+    g.start = time.perf_counter()
+
+
+@app.after_request
+def log_request(response):
+    if request.path not in QUIET_PATHS:
+        duration_ms = (time.perf_counter() - g.start) * 1000
+        log.info(json.dumps({
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "level": "ERROR" if response.status_code >= 500 else "INFO",
+            "pod": POD_NAME,
+            "method": request.method,
+            "path": request.path,
+            "status": response.status_code,
+            "duration_ms": round(duration_ms, 1),
+        }))
+    return response
+
+
+def db_ok():
+    # Short timeout so a probe never hangs longer than its own timeoutSeconds.
+    try:
+        conn = mysql.connector.connect(
+            host=DB_HOST, port=DB_PORT, user=DB_USER,
+            password=DB_PASSWORD, database=DB_NAME, connection_timeout=1,
+        )
+        conn.close()
+        return True
+    except mysql.connector.Error:
+        return False
 
 _schema_ready = False
 
@@ -73,7 +128,25 @@ def ensure_schema(conn):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "pod": POD_NAME, "version": APP_VERSION}
+    return {"status": "ok", "pod": POD_NAME, "version": APP_VERSION,
+            "commit": GIT_SHA}
+
+
+@app.get("/healthz")
+def healthz():
+    """Liveness: is the process alive? Reports the DB, but never fails on it."""
+    return {"status": "alive", "database": "up" if db_ok() else "down",
+            "pod": POD_NAME, "commit": GIT_SHA}
+
+
+@app.get("/readyz")
+def readyz():
+    """Readiness: can this pod serve traffic right now?"""
+    if os.path.exists(NOT_READY_FLAG):
+        return jsonify(ready=False, reason="not-ready flag set"), 503
+    if not db_ok():
+        return jsonify(ready=False, reason="database unreachable"), 503
+    return {"ready": True, "pod": POD_NAME}
 
 
 @app.get("/api/info")

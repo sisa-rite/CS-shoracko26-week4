@@ -12,9 +12,12 @@ COPY backend/ /app/
 ARG APP_VERSION=dev
 ENV APP_VERSION=${APP_VERSION}
 
+ARG GIT_SHA=local
+ENV GIT_SHA=${GIT_SHA}
+
 RUN chgrp -R 0 /app && chmod -R g=u /app
 
 USER 1001
 EXPOSE 8000
 
-CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "app:app"]
+CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "app:app"]
