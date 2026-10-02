@@ -125,25 +125,132 @@
       <p><a href="/">← All assignments</a></p>
       <h1>Week 6 – CI/CD pipeline and observability</h1>
       <p class="lede">Simona Horáčková · Cloud Services</p>
-
+      <h2>
+        My github repository URL:
+        <a href="https://github.com/sisa-rite/CS-shoracko26-week4"
+          >https://github.com/sisa-rite/CS-shoracko26-week4</a
+        >
+      </h2>
       <section>
-        <h2>Running right now</h2>
+        <h2>Part A – Questions</h2>
+
+        <h3>
+          2. Describe the structure of a GitHub Actions workflow (triggers,
+          jobs, steps). What would a minimal pipeline for the app you built in
+          Week 4/5 need to do?
+        </h3>
         <p>
-          This box asks the backend which commit it was built from. After every
-          push to <code>main</code> the value changes. You can compare it with
-          the latest commit in the
-          <a href="https://github.com/sisa-rite/CS-shoracko26-week4"
-            >GitHub repository</a
-          >.
+          A GitHub Actions workflow is a YAML file in the
+          <code>.github/workflows/</code> folder of the repository, so it is
+          version-controlled together with the code. It has three levels:
+          triggers, jobs and steps. The trigger (<code>on:</code>) says when the
+          workflow starts, for example after a push or a pull request, on a
+          schedule, or manually. A job is one unit of work which runs on its own
+          virtual machine (runner). Jobs can run at the same time or one after
+          another. Steps are commands or ready-made actions (e.g.
+          <code>actions/checkout</code>) which run one after another in the job.
+          If one fails, the next ones do not run.
         </p>
-        <div class="live">
-          <div><span>commit</span> <b id="commit">loading…</b></div>
-          <div><span>pod</span> <b id="pod">loading…</b></div>
-        </div>
-      </section>
+        <p>
+          My workflow starts after every push to the <code>main</code> branch,
+          or manually with a button. It has one job,
+          <code>build-and-deploy</code>, which runs on
+          <code>ubuntu-latest</code>. A minimal pipeline for my app needs to
+          check out the code, build an image, push it to a registry (Docker Hub)
+          and deploy it to Rahti with the <code>oc set image</code> command. I
+          also added <code>oc rollout status</code>, so the run turns red if the
+          new pods do not start. Otherwise the green check would not prove
+          anything. I tag the images with the short commit id (e.g.
+          <code>fcf2644</code>), so I know exactly which code is running.
+        </p>
 
+        <h3>
+          5. Explain the difference between a liveness probe and a readiness
+          probe in Kubernetes/Rahti. What happens when each one fails?
+        </h3>
+        <p>
+          Rahti does not guess if a container works, it checks it with probes. A
+          liveness probe asks if the container is alive, so it means if it isn't
+          stuck. If the liveness probe fails a few times in a row, Rahti
+          restarts the container. A readiness probe asks if the pod is ready to
+          take requests. If it fails, the pod is removed from the Service, but
+          it is not restarted. So the main difference is that the liveness probe
+          fixes the problem by restarting, and the readiness probe just moves
+          the traffic away until the pod recovers.
+        </p>
+        <p>
+          In my backend, the liveness probe calls <code>/healthz</code> and the
+          readiness probe calls <code>/readyz</code>. I scaled the backend to 2
+          pods and I created the file <code>/tmp/not-ready</code> in one of
+          them, so <code>/readyz</code> returned error 503. After about 30
+          seconds, the pod was <code>READY 0/1</code>, but
+          <code>RESTARTS 0</code>, and its IP disappeared from the endpoints.
+          All requests went to the other pod, so a user would not notice
+          anything. The pod came back by itself after I deleted the file. My
+          <code>/healthz</code> does not fail when the database is down, because
+          restarting the backend would not fix a database that is down.
+        </p>
+
+        <h3>
+          6. What is alert fatigue, and how would you design a small set of
+          alerts for a student project that avoids it?
+        </h3>
+        <p>
+          An alert is a rule that watches metrics or logs and sends a message
+          when a threshold is crossed. Alert fatigue happens when there are so
+          many notifications that people start to ignore them, and then they
+          miss the one important alert. It happens when the threshold is too
+          strict, or when one random error starts the alert. The opposite
+          problem is silent failure: there are no alerts, and you only find out
+          about the outage from a user. A good rule is to alert only on things
+          that a user would notice (the app does not work, requests fail, the
+          database does not respond).
+        </p>
+        <p>
+          For my project I would have only two alerts. The first one: when more
+          than 5% of the requests in 5 minutes have
+          <code>"level": "ERROR"</code>. One error is not enough, because it can
+          happen by accident. The second one: when the backend has no ready pod
+          for 2 minutes, because then nobody can use the app. I also avoided
+          noise in the logs: probes are not logged (otherwise there would be
+          hundreds of lines every hour), and a 404 has the level
+          <code>INFO</code>, not <code>ERROR</code>, because it is the visitor's
+          mistake, not the app's. So <code>ERROR</code> means that something is
+          really broken on my side, and an alert on it makes sense.
+        </p>
+
+        <h3>
+          7. Why should secrets (registry tokens, cluster login tokens) never be
+          hard-coded into a CI/CD pipeline file? How does GitHub Actions handle
+          this instead?
+        </h3>
+        <p>
+          The pipeline file is in Git, so everyone who has access to the
+          repository can see it. If the repository is public, the whole internet
+          can see it. Git keeps the history, so even if you delete the password
+          later, it stays in the old commits. Bots scan GitHub for leaked
+          passwords. In the week 1 example, a developer got a bill of about
+          $6,000 in one night after his keys leaked. Instead, GitHub Actions has
+          repository secrets. The value is saved once in the repository settings
+          and nobody can see it again. The workflow only uses the name of the
+          secret, for example <code>secrets.RAHTI_TOKEN</code>. If the value is
+          printed in a log by accident, GitHub replaces it with
+          <code>***</code>.
+        </p>
+        <p>
+          I saved three secrets: <code>DOCKERHUB_TOKEN</code>,
+          <code>RAHTI_TOKEN</code> and <code>RAHTI_SERVER</code>. For Rahti I
+          did not use my own token, but created a robot account,
+          <code>github-deployer</code>, which has the <code>edit</code> role in
+          only one project. The Docker Hub token can only read and push images,
+          not delete them. So if a token leaked, an attacker could only do a
+          little damage. I copied the robot token straight to my clipboard with
+          <code>pbcopy</code>, so it was never shown on the screen or in a
+          screenshot.
+        </p>
+      </section>
       <section>
-        <h2>Part B – Automate and observe the app</h2>
+        <h2>Part B – Documentation</h2>
         <p>
           I used the same app as in week 4 and 5: an nginx frontend, a Flask
           backend and a MySQL database on Rahti. This week I added two things: a
@@ -576,11 +683,6 @@ oc logs -l app=backend --since=5m | grep -c '"level": "ERROR"'</pre
           <b>Solution:</b> This is normal. The Service picks a pod at random,
           not in turns.
         </p>
-      </section>
-
-      <section>
-        <h2>Part A – Questions</h2>
-        <p>Coming soon.</p>
       </section>
     </main>
     <script>
