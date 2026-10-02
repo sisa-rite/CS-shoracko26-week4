@@ -16,6 +16,8 @@ spec:
     spec:
       containers:
         - name: backend
+          # The tag here is only the starting version. GitHub Actions replaces it
+          # on every push with oc set image (see .github/workflows/deploy.yml).
           image: shoracko26/lemp-backend:1.0.0
           ports:
             - containerPort: 8000
@@ -34,16 +36,20 @@ spec:
                   fieldPath: metadata.name
           readinessProbe:
             httpGet:
-              path: /api/health
+              path: /readyz
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /api/health
+              path: /healthz
               port: 8000
             initialDelaySeconds: 15
             periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m

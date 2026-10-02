@@ -57,7 +57,7 @@
       }
       h3 {
         font-size: 0.98rem;
-        margin: 1.5rem 0 0.4rem;
+        margin: 1.6rem 0 0.4rem;
         font-weight: 600;
       }
       pre {
@@ -98,6 +98,26 @@
         color: var(--muted);
         font-family: inherit;
       }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.92rem;
+        width: 100%;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.8rem 0.45rem 0;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -110,7 +130,11 @@
         <h2>Running right now</h2>
         <p>
           This box asks the backend which commit it was built from. After every
-          push to <code>main</code> the value changes.
+          push to <code>main</code> the value changes. You can compare it with
+          the latest commit in the
+          <a href="https://github.com/sisa-rite/CS-shoracko26-week4"
+            >GitHub repository</a
+          >.
         </p>
         <div class="live">
           <div><span>commit</span> <b id="commit">loading…</b></div>
@@ -119,21 +143,703 @@
       </section>
 
       <section>
-        <h2>Part A – Questions</h2>
-        <p>Coming soon.</p>
+        <h2>Part B – Automate and observe the app</h2>
+        <p>
+          I used the same app as in week 4 and 5: an nginx frontend, a Flask
+          backend and a MySQL database on Rahti. This week I added two things: a
+          pipeline that deploys the app on every push, and health checks and
+          logs so I can see if the app works.
+        </p>
+
+        <h3>1. The CI/CD pipeline</h3>
+        <p>
+          Before this week I deployed every change by hand. I built the image,
+          pushed it to Docker Hub, ran <code>oc set image</code> and waited. Now
+          GitHub Actions does the same steps on every push to <code>main</code>.
+          It builds images for both the backend and the frontend, pushes them to
+          Docker Hub and deploys them to Rahti. This page is part of the
+          frontend, so the pipeline also deploys this page.
+        </p>
+
+        <h3>1.1 A robot account for GitHub</h3>
+        <p>
+          GitHub needs to log in to Rahti. My own login token stops working
+          after a few hours, so I made a separate account for GitHub. In Rahti
+          this is called a ServiceAccount. I named it
+          <code>github-deployer</code>. It has a token that does not expire, and
+          it only has the <code>edit</code> role in my project. If someone stole
+          the token, they could only change this one project, not my whole CSC
+          account.
+        </p>
+        <pre>
+oc create serviceaccount github-deployer
+oc policy add-role-to-user edit -z github-deployer
+# then a Secret of type kubernetes.io/service-account-token holds its token</pre
+        >
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/create-robot.png"
+            alt="Creating the github-deployer account, its role and its token"
+          />
+          <figcaption>
+            The robot account, its <code>edit</code> role in one project, and
+            the secret with its token. The token itself is never shown.
+          </figcaption>
+        </figure>
+
+        <h3>1.2 Secrets</h3>
+        <p>
+          The workflow file is public, so it cannot contain any password. I
+          saved three values as GitHub repository secrets. The workflow only
+          uses their names, like <code>secrets.RAHTI_TOKEN</code>. If a secret
+          is printed in a log by mistake, GitHub shows <code>***</code>
+          instead.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Secret</th>
+              <th>What it is</th>
+            </tr>
+            <tr>
+              <td><code>DOCKERHUB_TOKEN</code></td>
+              <td>
+                a Docker Hub token that can read and push images, but cannot
+                delete them
+              </td>
+            </tr>
+            <tr>
+              <td><code>RAHTI_TOKEN</code></td>
+              <td>the token of the <code>github-deployer</code> account</td>
+            </tr>
+            <tr>
+              <td><code>RAHTI_SERVER</code></td>
+              <td>the address of Rahti</td>
+            </tr>
+          </table>
+        </div>
+        <p>
+          I copied the Rahti token straight to the clipboard with
+          <code>pbcopy</code>, so it never showed on my screen or in a
+          screenshot.
+        </p>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/secrets.png"
+            alt="Three repository secrets in GitHub"
+          />
+          <figcaption>
+            The three secrets in GitHub. You can only see the names, not the
+            values.
+          </figcaption>
+        </figure>
+
+        <h3>1.3 The workflow file</h3>
+        <p>File: <code>.github/workflows/deploy.yml</code></p>
+        <pre>
+name: Build and deploy to Rahti
+
+# When does the robot start? On every push to main,
+# or by hand from the Actions tab ("Run workflow").
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  BACKEND_IMAGE: docker.io/shoracko26/lemp-backend
+  FRONTEND_IMAGE: docker.io/shoracko26/lemp-frontend
+  NAMESPACE: cs-rahti-project
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Short commit id (used as the image tag)
+        run: echo "TAG=${GITHUB_SHA::7}" &gt;&gt; "$GITHUB_ENV"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: shoracko26
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: GIT_SHA=${{ env.TAG }}
+          tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}
+
+      - name: Build and push frontend (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}
+
+      - name: Install the oc client
+        run: |
+          curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar -xz oc
+          sudo mv oc /usr/local/bin/oc
+          oc version --client
+
+      - name: Log in to Rahti
+        run: oc login --token="${{ secrets.RAHTI_TOKEN }}" --server="${{ secrets.RAHTI_SERVER }}"
+
+      - name: Deploy the new images
+        run: |
+          oc -n "$NAMESPACE" set image deployment/backend backend="$BACKEND_IMAGE:$TAG"
+          oc -n "$NAMESPACE" set image deployment/frontend frontend="$FRONTEND_IMAGE:$TAG"
+
+      - name: Wait until the new pods are running
+        run: |
+          oc -n "$NAMESPACE" rollout status deployment/backend --timeout=180s
+          oc -n "$NAMESPACE" rollout status deployment/frontend --timeout=180s
+
+      - name: Show what is running now
+        run: |
+          oc -n "$NAMESPACE" get deployment backend frontend -o wide
+          oc -n "$NAMESPACE" get pods</pre
+        >
+
+        <h3>1.4 What each part does</h3>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Part</th>
+              <th>What it does</th>
+            </tr>
+            <tr>
+              <td><code>on:</code></td>
+              <td>
+                The trigger. The workflow starts on every push to
+                <code>main</code>, or when I press "Run workflow".
+              </td>
+            </tr>
+            <tr>
+              <td><code>jobs:</code></td>
+              <td>
+                One job called <code>build-and-deploy</code>. It runs on a new
+                Ubuntu virtual machine that GitHub deletes after the run.
+              </td>
+            </tr>
+            <tr>
+              <td><code>steps:</code></td>
+              <td>
+                The steps of the job. They run one after another. If one fails,
+                the next ones do not run.
+              </td>
+            </tr>
+            <tr>
+              <td>Short commit id</td>
+              <td>
+                Takes the first 7 characters of the commit id, for example
+                <code>fcf2644</code>. This is the image tag. I do not use
+                <code>latest</code>, because then I could not tell which commit
+                is running.
+              </td>
+            </tr>
+            <tr>
+              <td>Build and push</td>
+              <td>
+                The same as my old <code>docker build</code> and
+                <code>docker push</code>, for <code>linux/amd64</code>. The
+                commit id is also saved inside the backend image as
+                <code>GIT_SHA</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>Install the oc client</td>
+              <td>
+                The GitHub machine does not have <code>oc</code>, so the
+                workflow downloads it.
+              </td>
+            </tr>
+            <tr>
+              <td>Log in to Rahti</td>
+              <td>
+                Logs in as <code>github-deployer</code> with the token from the
+                secrets.
+              </td>
+            </tr>
+            <tr>
+              <td>Deploy the new images</td>
+              <td>
+                Runs <code>oc set image</code> for the backend and the frontend.
+              </td>
+            </tr>
+            <tr>
+              <td>Wait until the new pods are running</td>
+              <td>
+                Runs <code>oc rollout status</code>. If the new pods do not
+                start in 3 minutes, the run turns red. So a green run means the
+                app really runs on Rahti.
+              </td>
+            </tr>
+            <tr>
+              <td>Show what is running now</td>
+              <td>
+                Prints the deployments and pods, so the run log also shows what
+                was deployed.
+              </td>
+            </tr>
+          </table>
+        </div>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/build.png"
+            alt="Successful GitHub Actions run"
+          />
+          <figcaption>
+            The first run, started by commit <code>fcf2644</code>. It was green
+            after 1 min 13 s.
+          </figcaption>
+        </figure>
+
+        <h3>2. Proof that a push changes the deployment</h3>
+        <p>
+          A green check in GitHub is not enough, so I checked Rahti before and
+          after the push. Before the push I ran these commands:
+        </p>
+        <pre>
+oc get deployment backend frontend -o wide
+oc get pods
+curl -s https://frontend-cs-rahti-project.2.rahtiapp.fi/api/health</pre
+        >
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/before.png"
+            alt="Deployments and pods before the push"
+          />
+          <figcaption>
+            Before the push: images with tag <code>1.1.0</code>, pods 5 days
+            old, and <code>/api/health</code> has no commit.
+          </figcaption>
+        </figure>
+        <p>
+          Then I pushed, the pipeline ran, and I ran the same commands again:
+        </p>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/after.png"
+            alt="Deployments and pods after the push"
+          />
+          <figcaption>
+            After the push: images with tag <code>fcf2644</code>, new pods only
+            8 minutes old, and <code>/api/health</code> says
+            <code>"commit":"fcf2644"</code>.
+          </figcaption>
+        </figure>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th></th>
+              <th>Before</th>
+              <th>After</th>
+            </tr>
+            <tr>
+              <td>Backend image</td>
+              <td><code>lemp-backend:1.1.0</code></td>
+              <td><code>lemp-backend:fcf2644</code></td>
+            </tr>
+            <tr>
+              <td>Frontend image</td>
+              <td><code>lemp-frontend:1.1.0</code></td>
+              <td><code>lemp-frontend:fcf2644</code></td>
+            </tr>
+            <tr>
+              <td>Backend pod</td>
+              <td><code>backend-5997bfd874-5jk5b</code>, age 5d13h</td>
+              <td><code>backend-67c69ffbbd-pnfww</code>, age 8m54s</td>
+            </tr>
+            <tr>
+              <td>Frontend pod</td>
+              <td><code>frontend-674c49f5cb-99fnf</code>, age 5d13h</td>
+              <td><code>frontend-856f5fdbc6-5pgdq</code>, age 8m53s</td>
+            </tr>
+            <tr>
+              <td><code>/api/health</code></td>
+              <td>no <code>commit</code> field</td>
+              <td><code>"commit":"fcf2644"</code></td>
+            </tr>
+          </table>
+        </div>
+        <p>
+          Everything changed: the image tag, the pod names, the pod age and the
+          answer of the app. <code>fcf2644</code> is the id of my commit, so one
+          commit started one new deployment. The box at the top of this page
+          shows the commit that runs right now.
+        </p>
+
+        <h3>3. Health checks</h3>
+        <p>
+          Rahti does not guess if my backend works. It asks the backend with two
+          probes:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Probe</th>
+              <th>Question</th>
+              <th>Address</th>
+              <th>What happens if it fails</th>
+            </tr>
+            <tr>
+              <td>Liveness</td>
+              <td>"Are you alive?"</td>
+              <td><code>/healthz</code></td>
+              <td>Rahti restarts the container.</td>
+            </tr>
+            <tr>
+              <td>Readiness</td>
+              <td>"Can you take visitors now?"</td>
+              <td><code>/readyz</code></td>
+              <td>
+                Rahti takes the pod out of the Service, but does not restart it.
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <h3>3.1 The two new addresses in the backend</h3>
+        <p>
+          <code>/healthz</code> always answers "alive". It also tells if the
+          database is up or down, but it never fails because of the database. If
+          the database is down, restarting the backend would not fix it, so the
+          liveness probe should not depend on it.
+        </p>
+        <p>
+          <code>/readyz</code> answers 503 (not ready) in two cases: when the
+          database does not answer, or when the file <code>/tmp/not-ready</code>
+          exists in the pod. I added that file as a switch, so I can break the
+          readiness check on purpose.
+        </p>
+        <p>
+          These addresses are not public. nginx only forwards
+          <code>/api/...</code> to the backend. So I tested them from inside the
+          pod with <code>oc exec</code>:
+        </p>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/healthz-readyz.png"
+            alt="Answers of /healthz and /readyz"
+          />
+          <figcaption>
+            <code>/healthz</code> says the database is up,
+            <code>/readyz</code> says the pod is ready.
+          </figcaption>
+        </figure>
+
+        <h3>3.2 Probe configuration</h3>
+        <p>
+          The backend already had probes from week 4, but both asked
+          <code>/api/health</code>, which always says "ok". I changed them with
+          <code>oc set probe</code>. The same settings are now in
+          <code>k8s/04-backend.yaml</code>:
+        </p>
+        <pre>
+          # Readiness: "can I take traffic?" Fails -&gt; pod leaves the Service.
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # Liveness: "is the process alive?" Fails -&gt; container is restarted.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3</pre
+        >
+        <p>
+          Example with the readiness probe: Rahti waits 5 seconds after the pod
+          starts, then asks every 10 seconds. If there is no answer in 3
+          seconds, it counts as a fail. After 3 fails in a row the pod is taken
+          out. So a broken pod leaves the Service after about 3 × 10 = 30
+          seconds, and one random slow answer does not do anything.
+        </p>
+
+        <h3>3.3 Breaking the readiness check on purpose</h3>
+        <p>
+          With only one backend pod, a failing readiness check would leave no
+          pod in the Service and the whole app would stop. To show what
+          readiness is for, I scaled the backend to 2 pods first. Both pods were
+          in the Service endpoints (two IP addresses):
+        </p>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/probes-before.png"
+            alt="Probe settings and two backend pods in the endpoints"
+          />
+          <figcaption>
+            The probe settings from the cluster, two backend pods, and both IPs
+            in <code>endpoints backend</code>.
+          </figcaption>
+        </figure>
+        <p>
+          Then I turned on the switch in one pod, waited about 40 seconds, and
+          checked again:
+        </p>
+        <pre>oc exec backend-578bb6cddc-hpzv8 -- touch /tmp/not-ready</pre>
+        <p>After that I removed the switch again and checked once more:</p>
+        <pre>oc exec backend-578bb6cddc-hpzv8 -- rm /tmp/not-ready</pre>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/fail%2Brecovery.png"
+            alt="Readiness failing and recovering"
+          />
+          <figcaption>
+            Top: the pod is not ready and left the endpoints. Bottom: after
+            removing the switch, it is back.
+          </figcaption>
+        </figure>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th></th>
+              <th>Switch on</th>
+              <th>Switch off again</th>
+            </tr>
+            <tr>
+              <td>Pod <code>hpzv8</code></td>
+              <td>
+                <code>READY 0/1</code>, still <code>Running</code>,
+                <code>RESTARTS 0</code>
+              </td>
+              <td><code>READY 1/1</code>, <code>RESTARTS 0</code></td>
+            </tr>
+            <tr>
+              <td>Service endpoints</td>
+              <td>only <code>10.131.14.253:8000</code></td>
+              <td>
+                <code>10.129.22.156:8000</code> and
+                <code>10.131.14.253:8000</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Event</td>
+              <td>
+                <code
+                  >Readiness probe failed: HTTP probe failed with statuscode:
+                  503</code
+                >
+              </td>
+              <td>no new fails</td>
+            </tr>
+            <tr>
+              <td>Who answered my requests</td>
+              <td>always <code>jz2v6</code></td>
+              <td>both pods</td>
+            </tr>
+          </table>
+        </div>
+        <p>
+          So yes, the pod dropped out of the Service endpoints. It was not
+          restarted, it just stopped getting traffic. The other pod answered all
+          requests, so a visitor would not notice anything. When the pod was
+          healthy again, it came back by itself. This is the difference between
+          readiness and liveness: readiness only moves traffic away, liveness
+          would restart the container.
+        </p>
+        <p>
+          After the test I scaled the backend back to 1 pod, because my project
+          has a small CPU quota.
+        </p>
+
+        <h3>4. Logs and an alert rule</h3>
+        <p>
+          The backend now writes one line for every request. The line is in
+          JSON, so a program can read it, not only a person. It has the time,
+          the pod, the method, the path, the status code and how long the
+          request took.
+        </p>
+        <p>
+          I do not log the probe addresses <code>/healthz</code> and
+          <code>/readyz</code>. Rahti calls them every 10–20 seconds, so they
+          would fill the log with hundreds of useless lines and hide the real
+          requests.
+        </p>
+        <p>
+          I sent a few requests (one of them to a page that does not exist) and
+          read the logs of both pods:
+        </p>
+        <pre>oc logs -l app=backend --prefix --tail=8</pre>
+        <figure>
+          <img
+            src="https://a3s.fi/swift/v1/week6-docs/logs.png"
+            alt="JSON log lines from oc logs"
+          />
+          <figcaption>Log lines from both backend pods.</figcaption>
+        </figure>
+        <p>One line from the log:</p>
+        <pre>
+{"ts": "2026-10-02T07:12:36Z", "level": "INFO", "pod": "backend-578bb6cddc-hpzv8", "method": "GET", "path": "/api/weather", "status": 200, "duration_ms": 237.6}</pre
+        >
+        <p>What I can see in the logs:</p>
+        <ul>
+          <li>
+            <code>/api/weather</code> took 237.6 ms, the other requests took
+            0.1–50 ms. The weather request is the slowest, because it calls the
+            Open-Meteo API.
+          </li>
+          <li>
+            <code>/api/nope</code> got status 404. Its level is still
+            <code>INFO</code>, because 404 means the visitor asked for a wrong
+            page, not that my app is broken. Only status 500 or higher gets the
+            level <code>ERROR</code>.
+          </li>
+        </ul>
+
+        <h3>4.1 A real alert rule</h3>
+        <p>
+          An alert should tell me when a user would notice a problem. If I send
+          an alert for everything, I will start to ignore them. So I would keep
+          only two rules:
+        </p>
+        <ul>
+          <li>
+            <b>Errors:</b> if more than 5% of the requests in 5 minutes have
+            <code>"level": "ERROR"</code>, send me a message. One error is not
+            enough, because one random fail can happen.
+          </li>
+          <li>
+            <b>App down:</b> if the backend has no ready pod for 2 minutes, send
+            me a message. Then nobody can use the app.
+          </li>
+        </ul>
+        <p>
+          With only <code>oc logs</code> I can count the errors myself, for
+          example:
+        </p>
+        <pre>
+oc logs -l app=backend --since=5m | grep -c '"level": "ERROR"'</pre
+        >
+        <p>
+          A real setup would collect the logs in a tool like Grafana or
+          Prometheus and check the rule automatically every minute.
+        </p>
+
+        <h3>5. Problems and solutions</h3>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Problem</th>
+              <th>Solution</th>
+            </tr>
+            <tr>
+              <td>
+                My own Rahti token stops working after a few hours, so the
+                pipeline would fail the next day.
+              </td>
+              <td>
+                I made the <code>github-deployer</code> account with a token
+                that does not expire and only the <code>edit</code> role.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                The teacher's example uses the GitHub registry (ghcr.io). Images
+                there are private by default, so Rahti could not download them
+                without another password.
+              </td>
+              <td>
+                I kept using Docker Hub, where my images are public, like in
+                week 4 and 5.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                I wanted to show the running version with
+                <code>APP_VERSION</code>, but it always said <code>1.0.1</code>,
+                because the ConfigMap overwrites it.
+              </td>
+              <td>
+                I added a new value, <code>GIT_SHA</code>. The pipeline puts the
+                commit id into the image, and <code>/api/health</code> shows it.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                I could not use <code>oc apply</code> for the new probes. The
+                YAML file still had the old image tag, so it would go back to
+                old code, and the old code does not have <code>/readyz</code>.
+              </td>
+              <td>
+                First the pipeline deployed the new code, then I changed only
+                the probes with <code>oc set probe</code>. The order matters.
+                The YAML file now has a comment that the pipeline changes the
+                image tag.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                With one backend pod, a failing readiness check would stop the
+                whole app, and the test would not show much.
+              </td>
+              <td>
+                I scaled to 2 pods for the test and back to 1 pod after it.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Gunicorn's own access log also wrote every request, including
+                the probes, so every request was in the log twice.
+              </td>
+              <td>
+                I turned off the Gunicorn access log and kept only my JSON log,
+                without the probe addresses.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                The line <code>Booting worker with pid: 4</code> in the log is
+                not JSON. It comes from Gunicorn, not from my app.
+              </td>
+              <td>
+                Not fixed. A tool that reads the logs has to skip lines that are
+                not JSON.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>oc get endpoints</code> printed a warning that Endpoints
+                is deprecated.
+              </td>
+              <td>
+                It still works. Newer Kubernetes uses EndpointSlice instead. It
+                does not change the result.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                After the readiness fix, requests did not go to the two pods one
+                after another. Sometimes the same pod answered 4 times in a row.
+              </td>
+              <td>
+                This is normal. The Service picks a pod at random, not in turns.
+              </td>
+            </tr>
+          </table>
+        </div>
       </section>
 
       <section>
-        <h2>Part B – Automate and observe the app</h2>
-        <h3>1. The CI/CD pipeline</h3>
-        <p>Coming soon.</p>
-        <h3>2. Proof that a push changes the deployment</h3>
-        <p>Coming soon.</p>
-        <h3>3. Health checks</h3>
-        <p>Coming soon.</p>
-        <h3>4. Logs and an alert rule</h3>
-        <p>Coming soon.</p>
-        <h3>5. Problems and solutions</h3>
+        <h2>Part A – Questions</h2>
         <p>Coming soon.</p>
       </section>
     </main>
