@@ -218,182 +218,12 @@ oc policy add-role-to-user edit -z github-deployer
             </tr>
           </table>
         </div>
-        <p>
-          I copied the Rahti token straight to the clipboard with
-          <code>pbcopy</code>, so it never showed on my screen or in a
-          screenshot.
-        </p>
         <figure>
           <img
             src="https://a3s.fi/swift/v1/week6-docs/secrets.png"
             alt="Three repository secrets in GitHub"
           />
-          <figcaption>
-            The three secrets in GitHub. You can only see the names, not the
-            values.
-          </figcaption>
         </figure>
-
-        <h3>1.3 The workflow file</h3>
-        <p>File: <code>.github/workflows/deploy.yml</code></p>
-        <pre>
-name: Build and deploy to Rahti
-
-# When does the robot start? On every push to main,
-# or by hand from the Actions tab ("Run workflow").
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-env:
-  BACKEND_IMAGE: docker.io/shoracko26/lemp-backend
-  FRONTEND_IMAGE: docker.io/shoracko26/lemp-frontend
-  NAMESPACE: cs-rahti-project
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v4
-
-      - name: Short commit id (used as the image tag)
-        run: echo "TAG=${GITHUB_SHA::7}" &gt;&gt; "$GITHUB_ENV"
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: shoracko26
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push backend (linux/amd64)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: backend/Dockerfile
-          platforms: linux/amd64
-          push: true
-          build-args: GIT_SHA=${{ env.TAG }}
-          tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}
-
-      - name: Build and push frontend (linux/amd64)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: frontend/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}
-
-      - name: Install the oc client
-        run: |
-          curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar -xz oc
-          sudo mv oc /usr/local/bin/oc
-          oc version --client
-
-      - name: Log in to Rahti
-        run: oc login --token="${{ secrets.RAHTI_TOKEN }}" --server="${{ secrets.RAHTI_SERVER }}"
-
-      - name: Deploy the new images
-        run: |
-          oc -n "$NAMESPACE" set image deployment/backend backend="$BACKEND_IMAGE:$TAG"
-          oc -n "$NAMESPACE" set image deployment/frontend frontend="$FRONTEND_IMAGE:$TAG"
-
-      - name: Wait until the new pods are running
-        run: |
-          oc -n "$NAMESPACE" rollout status deployment/backend --timeout=180s
-          oc -n "$NAMESPACE" rollout status deployment/frontend --timeout=180s
-
-      - name: Show what is running now
-        run: |
-          oc -n "$NAMESPACE" get deployment backend frontend -o wide
-          oc -n "$NAMESPACE" get pods</pre
-        >
-
-        <h3>1.4 What each part does</h3>
-        <div class="table-wrap">
-          <table>
-            <tr>
-              <th>Part</th>
-              <th>What it does</th>
-            </tr>
-            <tr>
-              <td><code>on:</code></td>
-              <td>
-                The trigger. The workflow starts on every push to
-                <code>main</code>, or when I press "Run workflow".
-              </td>
-            </tr>
-            <tr>
-              <td><code>jobs:</code></td>
-              <td>
-                One job called <code>build-and-deploy</code>. It runs on a new
-                Ubuntu virtual machine that GitHub deletes after the run.
-              </td>
-            </tr>
-            <tr>
-              <td><code>steps:</code></td>
-              <td>
-                The steps of the job. They run one after another. If one fails,
-                the next ones do not run.
-              </td>
-            </tr>
-            <tr>
-              <td>Short commit id</td>
-              <td>
-                Takes the first 7 characters of the commit id, for example
-                <code>fcf2644</code>. This is the image tag. I do not use
-                <code>latest</code>, because then I could not tell which commit
-                is running.
-              </td>
-            </tr>
-            <tr>
-              <td>Build and push</td>
-              <td>
-                The same as my old <code>docker build</code> and
-                <code>docker push</code>, for <code>linux/amd64</code>. The
-                commit id is also saved inside the backend image as
-                <code>GIT_SHA</code>.
-              </td>
-            </tr>
-            <tr>
-              <td>Install the oc client</td>
-              <td>
-                The GitHub machine does not have <code>oc</code>, so the
-                workflow downloads it.
-              </td>
-            </tr>
-            <tr>
-              <td>Log in to Rahti</td>
-              <td>
-                Logs in as <code>github-deployer</code> with the token from the
-                secrets.
-              </td>
-            </tr>
-            <tr>
-              <td>Deploy the new images</td>
-              <td>
-                Runs <code>oc set image</code> for the backend and the frontend.
-              </td>
-            </tr>
-            <tr>
-              <td>Wait until the new pods are running</td>
-              <td>
-                Runs <code>oc rollout status</code>. If the new pods do not
-                start in 3 minutes, the run turns red. So a green run means the
-                app really runs on Rahti.
-              </td>
-            </tr>
-            <tr>
-              <td>Show what is running now</td>
-              <td>
-                Prints the deployments and pods, so the run log also shows what
-                was deployed.
-              </td>
-            </tr>
-          </table>
-        </div>
         <figure>
           <img
             src="https://a3s.fi/swift/v1/week6-docs/build.png"
@@ -473,13 +303,6 @@ curl -s https://frontend-cs-rahti-project.2.rahtiapp.fi/api/health</pre
             </tr>
           </table>
         </div>
-        <p>
-          Everything changed: the image tag, the pod names, the pod age and the
-          answer of the app. <code>fcf2644</code> is the id of my commit, so one
-          commit started one new deployment. The box at the top of this page
-          shows the commit that runs right now.
-        </p>
-
         <h3>3. Health checks</h3>
         <p>
           Rahti does not guess if my backend works. It asks the backend with two
@@ -586,10 +409,6 @@ curl -s https://frontend-cs-rahti-project.2.rahtiapp.fi/api/health</pre
             src="https://a3s.fi/swift/v1/week6-docs/probes-before.png"
             alt="Probe settings and two backend pods in the endpoints"
           />
-          <figcaption>
-            The probe settings from the cluster, two backend pods, and both IPs
-            in <code>endpoints backend</code>.
-          </figcaption>
         </figure>
         <p>
           Then I turned on the switch in one pod, waited about 40 seconds, and
@@ -603,51 +422,7 @@ curl -s https://frontend-cs-rahti-project.2.rahtiapp.fi/api/health</pre
             src="https://a3s.fi/swift/v1/week6-docs/fail%2Brecovery.png"
             alt="Readiness failing and recovering"
           />
-          <figcaption>
-            Top: the pod is not ready and left the endpoints. Bottom: after
-            removing the switch, it is back.
-          </figcaption>
         </figure>
-        <div class="table-wrap">
-          <table>
-            <tr>
-              <th></th>
-              <th>Switch on</th>
-              <th>Switch off again</th>
-            </tr>
-            <tr>
-              <td>Pod <code>hpzv8</code></td>
-              <td>
-                <code>READY 0/1</code>, still <code>Running</code>,
-                <code>RESTARTS 0</code>
-              </td>
-              <td><code>READY 1/1</code>, <code>RESTARTS 0</code></td>
-            </tr>
-            <tr>
-              <td>Service endpoints</td>
-              <td>only <code>10.131.14.253:8000</code></td>
-              <td>
-                <code>10.129.22.156:8000</code> and
-                <code>10.131.14.253:8000</code>
-              </td>
-            </tr>
-            <tr>
-              <td>Event</td>
-              <td>
-                <code
-                  >Readiness probe failed: HTTP probe failed with statuscode:
-                  503</code
-                >
-              </td>
-              <td>no new fails</td>
-            </tr>
-            <tr>
-              <td>Who answered my requests</td>
-              <td>always <code>jz2v6</code></td>
-              <td>both pods</td>
-            </tr>
-          </table>
-        </div>
         <p>
           So yes, the pod dropped out of the Service endpoints. It was not
           restarted, it just stopped getting traffic. The other pod answered all
@@ -729,113 +504,78 @@ curl -s https://frontend-cs-rahti-project.2.rahtiapp.fi/api/health</pre
         <pre>
 oc logs -l app=backend --since=5m | grep -c '"level": "ERROR"'</pre
         >
+        <h3>5. Problems and solutions</h3>
+
         <p>
-          A real setup would collect the logs in a tool like Grafana or
-          Prometheus and check the rule automatically every minute.
+          <b>a) Problem:</b> My own Rahti token stops working after a few hours,
+          so the pipeline would fail the next day.<br />
+          <b>Solution:</b> I made the <code>github-deployer</code> account with
+          a token that does not expire and only the <code>edit</code> role.
         </p>
 
-        <h3>5. Problems and solutions</h3>
-        <div class="table-wrap">
-          <table>
-            <tr>
-              <th>Problem</th>
-              <th>Solution</th>
-            </tr>
-            <tr>
-              <td>
-                My own Rahti token stops working after a few hours, so the
-                pipeline would fail the next day.
-              </td>
-              <td>
-                I made the <code>github-deployer</code> account with a token
-                that does not expire and only the <code>edit</code> role.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                The teacher's example uses the GitHub registry (ghcr.io). Images
-                there are private by default, so Rahti could not download them
-                without another password.
-              </td>
-              <td>
-                I kept using Docker Hub, where my images are public, like in
-                week 4 and 5.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                I wanted to show the running version with
-                <code>APP_VERSION</code>, but it always said <code>1.0.1</code>,
-                because the ConfigMap overwrites it.
-              </td>
-              <td>
-                I added a new value, <code>GIT_SHA</code>. The pipeline puts the
-                commit id into the image, and <code>/api/health</code> shows it.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                I could not use <code>oc apply</code> for the new probes. The
-                YAML file still had the old image tag, so it would go back to
-                old code, and the old code does not have <code>/readyz</code>.
-              </td>
-              <td>
-                First the pipeline deployed the new code, then I changed only
-                the probes with <code>oc set probe</code>. The order matters.
-                The YAML file now has a comment that the pipeline changes the
-                image tag.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                With one backend pod, a failing readiness check would stop the
-                whole app, and the test would not show much.
-              </td>
-              <td>
-                I scaled to 2 pods for the test and back to 1 pod after it.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Gunicorn's own access log also wrote every request, including
-                the probes, so every request was in the log twice.
-              </td>
-              <td>
-                I turned off the Gunicorn access log and kept only my JSON log,
-                without the probe addresses.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                The line <code>Booting worker with pid: 4</code> in the log is
-                not JSON. It comes from Gunicorn, not from my app.
-              </td>
-              <td>
-                Not fixed. A tool that reads the logs has to skip lines that are
-                not JSON.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <code>oc get endpoints</code> printed a warning that Endpoints
-                is deprecated.
-              </td>
-              <td>
-                It still works. Newer Kubernetes uses EndpointSlice instead. It
-                does not change the result.
-              </td>
-            </tr>
-            <tr>
-              <td>
-                After the readiness fix, requests did not go to the two pods one
-                after another. Sometimes the same pod answered 4 times in a row.
-              </td>
-              <td>
-                This is normal. The Service picks a pod at random, not in turns.
-              </td>
-            </tr>
-          </table>
-        </div>
+        <p>
+          <b>b) Problem:</b> The teacher's example uses the GitHub registry
+          (ghcr.io). Images there are private by default, so Rahti could not
+          download them without another password.<br />
+          <b>Solution:</b> I kept using Docker Hub, where my images are public,
+          like in week 4 and 5.
+        </p>
+
+        <p>
+          <b>c) Problem:</b> I wanted to show the running version with
+          <code>APP_VERSION</code>, but it always said <code>1.0.1</code>,
+          because the ConfigMap overwrites it.<br />
+          <b>Solution:</b> I added a new value, <code>GIT_SHA</code>. The
+          pipeline puts the commit id into the image, and
+          <code>/api/health</code> shows it.
+        </p>
+
+        <p>
+          <b>d) Problem:</b> I could not use <code>oc apply</code> for the new
+          probes. The YAML file still had the old image tag, so it would go back
+          to old code, and the old code does not have
+          <code>/readyz</code>.<br />
+          <b>Solution:</b> First the pipeline deployed the new code, then I
+          changed only the probes with <code>oc set probe</code>. The order
+          matters. The YAML file now has a comment that the pipeline changes the
+          image tag.
+        </p>
+
+        <p>
+          <b>e) Problem:</b> With one backend pod, a failing readiness check
+          would stop the whole app, and the test would not show much.<br />
+          <b>Solution:</b> I scaled to 2 pods for the test and back to 1 pod
+          after it.
+        </p>
+
+        <p>
+          <b>f) Problem:</b> Gunicorn's own access log also wrote every request,
+          including the probes, so every request was in the log twice.<br />
+          <b>Solution:</b> I turned off the Gunicorn access log and kept only my
+          JSON log, without the probe addresses.
+        </p>
+
+        <p>
+          <b>g) Problem:</b> The line <code>Booting worker with pid: 4</code> in
+          the log is not JSON. It comes from Gunicorn, not from my app.<br />
+          <b>Solution:</b> Not fixed. A tool that reads the logs has to skip
+          lines that are not JSON.
+        </p>
+
+        <p>
+          <b>h) Problem:</b> <code>oc get endpoints</code> printed a warning
+          that Endpoints is deprecated.<br />
+          <b>Solution:</b> It still works. Newer Kubernetes uses EndpointSlice
+          instead. It does not change the result.
+        </p>
+
+        <p>
+          <b>i) Problem:</b> After the readiness fix, requests did not go to the
+          two pods one after another. Sometimes the same pod answered 4 times in
+          a row.<br />
+          <b>Solution:</b> This is normal. The Service picks a pod at random,
+          not in turns.
+        </p>
       </section>
 
       <section>
