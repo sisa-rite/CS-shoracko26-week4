@@ -6,6 +6,7 @@ COPY frontend/index.html /usr/share/nginx/html/index.html
 COPY frontend/week4.html /usr/share/nginx/html/week4.html
 COPY frontend/week5.html /usr/share/nginx/html/week5.html
 COPY frontend/week6.html /usr/share/nginx/html/week6.html
+COPY frontend/week7.html /usr/share/nginx/html/week7.html
 COPY frontend/docs-page/docs.html /usr/share/nginx/html/docs.html
 COPY frontend/docs-page/img/ /usr/share/nginx/html/img/
 

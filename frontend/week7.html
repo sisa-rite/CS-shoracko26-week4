@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week 7 - Infrastructure as Code with OpenTofu</title>
+    <style>
+      :root { --bg:#e9edf0; --surface:#fff; --ink:#16222e; --muted:#5a6b7a; --rule:#ccd6dd; --accent:#1f5f8b; }
+      * { box-sizing: border-box; }
+      body { margin:0; padding:2.5rem 1.25rem 4rem; background:var(--bg); color:var(--ink);
+             font:16px/1.6 "Iowan Old Style", Palatino, Georgia, serif; }
+      main { max-width:52rem; margin:0 auto; }
+      a { color:var(--accent); }
+      h1 { font-size:1.75rem; line-height:1.2; margin:0 0 .35rem; font-weight:600; }
+      .lede { margin:0 0 2rem; color:var(--muted); }
+      section { background:var(--surface); border:1px solid var(--rule); padding:1.4rem 1.5rem; margin-bottom:1.25rem; }
+      h2 { font-size:1.15rem; margin:0 0 .8rem; font-weight:600; }
+      h3 { font-size:.98rem; margin:1.6rem 0 .4rem; font-weight:600; }
+      h4 { font-size:.92rem; margin:1.1rem 0 .3rem; font-weight:600; color:var(--muted); }
+      pre { background:#f4f7f9; border:1px solid var(--rule); padding:.8rem 1rem; overflow-x:auto;
+             font:.82rem/1.5 ui-monospace, Menlo, Consolas, monospace; }
+      code { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:.88em; }
+      figure { margin:1.2rem 0; }
+      figure img { max-width:100%; display:block; border:1px solid var(--rule); }
+      figcaption { font-size:.85rem; color:var(--muted); margin-top:.4rem; }
+      .table-wrap { overflow-x:auto; }
+      table { border-collapse:collapse; margin:1rem 0; font-size:.92rem; width:100%; }
+      th, td { text-align:left; padding:.45rem .8rem .45rem 0; border-bottom:1px solid var(--rule); vertical-align:top; }
+      th { color:var(--muted); font-weight:600; }
+      .exp p { margin:.3rem 0 .6rem; }
+      .tag { font-weight:600; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">← All assignments</a></p>
+      <h1>Week 7 – Infrastructure as Code with OpenTofu</h1>
+      <p class="lede">Simona Horáčková · Cloud Services</p>
+
+      <section>
+        <h2>Overview</h2>
+        <p>
+          In week 1 I built a virtual machine in cPouta by hand: I clicked it together in the web
+          interface, opened ports and installed a web server. This week I built the same kind of
+          server only from code with OpenTofu. One command creates everything, and the VM installs
+          Apache and writes my page by itself at the first boot. I never logged in to configure it.
+        </p>
+        <p>
+          <b>Git repository:</b>
+          <a href="https://github.com/sisa-rite/CS-shoracko26-week7">github.com/sisa-rite/CS-shoracko26-week7</a><br>
+          <b>Tool:</b> OpenTofu v1.13.1 on macOS, OpenStack provider ~&gt; 3.0, CSC cPouta
+        </p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/tofu-version.png" alt="tofu version output" loading="lazy"><figcaption>OpenTofu installed. I did not have Homebrew, so I downloaded the binary from the OpenTofu GitHub releases.</figcaption></figure>
+      </section>
+
+      <section>
+        <h2>Part B – Rebuild the week 1 VM as code</h2>
+
+        <h3>1. Setup</h3>
+        <ul>
+          <li><b>Repository and .gitignore first.</b> I created the <code>.gitignore</code> before any credentials existed in the folder. It ignores <code>clouds.yaml</code>, <code>*.tfstate</code>, <code>terraform.tfvars</code> and the <code>.terraform/</code> folder.</li>
+          <li><b>Application Credential.</b> OpenTofu logs in to cPouta with an Application Credential (<code>week7-tofu</code>), not with my CSC password. I did not tick "Unrestricted". The downloaded <code>clouds.yaml</code> stays only in my folder and is ignored by Git.</li>
+          <li><b>SSH key.</b> I made a new key pair only for this exercise: <code>ssh-keygen -t ed25519 -f ~/.ssh/week7_ed25519</code>. Only the public key is uploaded. The private key never leaves my laptop. In week 1, cPouta made the key and I downloaded the private key.</li>
+          <li><b>Values from cPouta:</b> network <code>project_2020448</code>, image <code>Ubuntu-24.04</code>, flavor <code>standard.tiny</code> (the same size as my week 1 VM), and my own public IP for SSH.</li>
+        </ul>
+
+        <h3>2. The files</h3>
+        <div class="table-wrap"><table>
+          <tr><th>File</th><th>What it does</th><th>Who wrote it</th></tr>
+          <tr><td><code>versions.tf</code></td><td>OpenTofu version and the OpenStack provider; reads the login from <code>clouds.yaml</code></td><td>given</td></tr>
+          <tr><td><code>main.tf</code></td><td>the infrastructure (see the table below)</td><td>given, I added the HTTPS rule in experiment 1</td></tr>
+          <tr><td><code>variables.tf</code></td><td>all inputs, with descriptions, types and validation</td><td>me</td></tr>
+          <tr><td><code>cloud-init.yaml</code></td><td>runs at the first boot: installs Apache and writes my page</td><td>me</td></tr>
+          <tr><td><code>outputs.tf</code></td><td>prints the public IP, the page URL and an SSH command</td><td>me</td></tr>
+          <tr><td><code>terraform.tfvars</code></td><td>my own values (network, my IP, my name) – not in Git</td><td>me</td></tr>
+          <tr><td><code>terraform.tfvars.example</code></td><td>the same keys with example values, so others know what to fill in</td><td>me</td></tr>
+          <tr><td><code>README.md</code></td><td>how someone else can run the code</td><td>me</td></tr>
+        </table></div>
+
+        <h3>3. What each block in main.tf does and how they refer to each other</h3>
+        <div class="table-wrap"><table>
+          <tr><th>Block</th><th>What it is</th><th>Refers to</th></tr>
+          <tr><td><code>data …network_v2.project</code></td><td>only <b>reads</b> my existing project network (made by CSC). It creates nothing.</td><td><code>var.project_network</code></td></tr>
+          <tr><td><code>…keypair_v2.web</code></td><td>uploads my public SSH key as <code>week7-key</code></td><td><code>var.ssh_public_key_path</code></td></tr>
+          <tr><td><code>…secgroup_v2.web</code></td><td>the firewall <code>week7-web-sg</code></td><td><code>var.name_prefix</code></td></tr>
+          <tr><td><code>…secgroup_rule_v2.ssh</code></td><td>port 22, only from my IP</td><td>the security group, <code>var.ssh_allowed_cidr</code></td></tr>
+          <tr><td><code>…secgroup_rule_v2.http</code></td><td>port 80 from everywhere</td><td>the security group</td></tr>
+          <tr><td><code>…port_v2.web</code></td><td>the VM's network "socket" in the project network, protected by the security group</td><td>the network (data), the security group</td></tr>
+          <tr><td><code>…instance_v2.web</code></td><td>the VM itself; gets <code>cloud-init.yaml</code> as <code>user_data</code></td><td>the key pair, the port, image/flavor variables</td></tr>
+          <tr><td><code>…floatingip_v2.web</code></td><td>the public IP from the <code>public</code> pool</td><td>the <b>port</b> (not the VM)</td></tr>
+        </table></div>
+        <p>
+          I never write an ID in the code. For example the SSH rule says
+          <code>security_group_id = openstack_networking_secgroup_v2.web.id</code>. The ID does not
+          exist yet when I write the code. OpenTofu sees the reference, so it knows the security group
+          must be created first. All references together make a dependency graph:
+        </p>
+        <pre>security group  ←  rules (ssh, http, https)
+security group  ←  port  ←  VM
+                   port  ←  floating IP
+key pair        ←  VM</pre>
+
+        <h3>4. variables.tf</h3>
+        <pre>variable &quot;name_prefix&quot; {
+  description = &quot;Prefix for the names of all resources, e.g. week7&quot;
+  type        = string
+  default     = &quot;week7&quot;
+}
+
+variable &quot;ssh_public_key_path&quot; {
+  description = &quot;SSH public key path&quot;
+  type        = string
+  default     = &quot;~/.ssh/week7_ed25519.pub&quot;
+}
+
+variable &quot;image_name&quot; {
+  description = &quot;Linux image for the VM, exactly as in Compute -&gt; Images&quot;
+  type        = string
+  default     = &quot;Ubuntu-24.04&quot;
+}
+
+variable &quot;flavor_name&quot; {
+  description = &quot;Name of flavor&quot;
+  type        = string
+  default     = &quot;standard.tiny&quot;
+}
+
+variable &quot;page_message&quot; {
+  description = &quot;Page message&quot;
+  type        = string
+  default     = &quot;Shoracko26 - week 7 assignment page message - built with tofu&quot;
+}
+
+variable &quot;project_network&quot; {
+  description = &quot;Name of the project network in cPouta (Network -&gt; Networks)&quot;
+  type        = string
+}
+
+variable &quot;ssh_allowed_cidr&quot; {
+  description = &quot;Who may connect with SSH. Only your own IP, e.g. 203.0.113.45/32&quot;
+  type        = string
+
+  validation {
+    condition     = can(cidrhost(var.ssh_allowed_cidr, 0))
+    error_message = &quot;ssh_allowed_cidr must be in CIDR format, e.g. 203.0.113.45/32.&quot;
+  }
+
+  validation {
+    condition     = var.ssh_allowed_cidr != &quot;0.0.0.0/0&quot;
+    error_message = &quot;SSH must not be open to the whole internet (0.0.0.0/0). Use your own IP, e.g. 203.0.113.45/32.&quot;
+  }
+}
+
+variable &quot;student_name&quot; {
+  description = &quot;Student name&quot;
+  type        = string
+}</pre>
+        <p>
+          <b>Why <code>project_network</code>, <code>ssh_allowed_cidr</code> and <code>student_name</code> have no default:</b>
+          these values are different for every student, so a default would be wrong for everybody else.
+          Without a default, the variable is required: if it is missing from <code>terraform.tfvars</code>,
+          <code>tofu plan</code> stops and asks for it. This is most important for <code>ssh_allowed_cidr</code>.
+          A default like <code>0.0.0.0/0</code> would quietly open SSH to the whole internet. At first I
+          wrote <code>default = ""</code>, but an empty default still makes the variable optional, so I removed it.
+        </p>
+        <p>
+          <b>Validation:</b> the first rule checks that the value is in CIDR format (for example
+          <code>87.100.212.51</code> without <code>/32</code> is stopped). I added a second rule that
+          blocks <code>0.0.0.0/0</code>. My week 1 VM had exactly this setting: SSH was open to the
+          whole internet (see the last screenshot on this page).
+        </p>
+
+        <h3>5. cloud-init.yaml</h3>
+        <pre>#cloud-config
+
+packages:
+  - apache2
+
+write_files:
+  - path: /var/www/html/index.html
+    defer: true # write AFTER packages are installed
+    permissions: &quot;0644&quot;
+    content: |
+      &lt;!doctype html&gt;
+      &lt;html lang=&quot;en&quot;&gt;
+        &lt;head&gt;
+          &lt;meta charset=&quot;utf-8&quot;&gt;
+          &lt;title&gt;Week 7 - OpenTofu&lt;/title&gt;
+        &lt;/head&gt;
+        &lt;body&gt;
+          &lt;h1&gt;Hello from ${student_name}!&lt;/h1&gt;
+          &lt;p&gt;${page_message}&lt;/p&gt;
+        &lt;/body&gt;
+      &lt;/html&gt;
+
+runcmd:
+  - systemctl enable --now apache2</pre>
+        <p>
+          The first line <code>#cloud-config</code> is required, otherwise cloud-init ignores the file.
+          <code>packages</code> installs Apache, <code>write_files</code> writes my page and
+          <code>runcmd</code> starts Apache now and after every reboot. Normally cloud-init writes files
+          <i>before</i> it installs packages, so Apache could overwrite my page with its default page.
+          <code>defer: true</code> writes my file at the end, after the packages. <code>${student_name}</code>
+          and <code>${page_message}</code> are filled in by OpenTofu with <code>templatefile()</code>
+          in <code>main.tf</code> before the file is sent to the VM.
+        </p>
+
+        <h3>6. outputs.tf</h3>
+        <pre>output &quot;public_ip&quot; {
+  description = &quot;Public (floating) IP address of the web server&quot;
+  value       = openstack_networking_floatingip_v2.web.address
+}
+
+output &quot;web_url&quot; {
+  description = &quot;Address of the web page, ready to paste into a browser&quot;
+  value       = &quot;http://${openstack_networking_floatingip_v2.web.address}&quot;
+}
+
+output &quot;ssh_command&quot; {
+  description = &quot;Command for checking the VM over SSH (checking only, not for configuring)&quot;
+  value       = &quot;ssh -i ~/.ssh/week7_ed25519 ubuntu@${openstack_networking_floatingip_v2.web.address}&quot;
+}</pre>
+        <p>
+          <code>address</code> is not written anywhere in <code>main.tf</code>. It is an attribute that
+          cPouta fills in only after the floating IP is created. I found it in the provider documentation
+          under "Attributes Reference". It works the same way as <code>.id</code> in <code>main.tf</code>.
+        </p>
+
+        <h3>7. First deploy</h3>
+        <p class="exp"><span class="tag">Prediction:</span> 7 resources to add. The <code>data</code> block is not one of them, because it only reads the network.</p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/tofu-plan.png" alt="First tofu plan" loading="lazy"><figcaption>First plan: 7 to add. The prediction was right. Values like the IP are (known after apply).</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/tofu-apply.png" alt="First tofu apply with outputs" loading="lazy"><figcaption>Apply complete: 7 added. The VM was ready in 13 seconds and the outputs print the IP and the URL.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/128.214.255.106.png" alt="My page in the browser" loading="lazy"><figcaption>About one minute later my own page works at the floating IP – no SSH, no clicking.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/instances.png" alt="cPouta instances" loading="lazy"><figcaption>cPouta: the new week7-vm (made by code) next to my old VM_week1 (made by hand).</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/security-groups.png" alt="cPouta security groups" loading="lazy"><figcaption>The security group week7-web-sg with the description “Managed by OpenTofu”.</figcaption></figure>
+
+        <h3>8. Experiment 1 – Change</h3>
+
+        <h4>Option A – change the page text</h4>
+        <p class="exp"><span class="tag">Prediction:</span> the VM is updated in place, because OpenTofu is declarative. The public IP stays the same.</p>
+        <p>I changed <code>page_message</code> in <code>terraform.tfvars</code> and ran <code>tofu plan</code>.</p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/change-page-message.png" alt="Plan for changing the page text" loading="lazy"><figcaption>Plan: the VM must be replaced (-/+). The line user_data … # forces replacement is the reason.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/page-msg-apply.png" alt="Apply after changing the page text" loading="lazy"><figcaption>Apply: 1 destroyed, 1 added. The old VM was destroyed (5 s), then a new one was created (13 s). The IP stayed 128.214.255.106.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/128.214.255.106-change.png" alt="New page text" loading="lazy"><figcaption>The new text, on the same IP address.</figcaption></figure>
+        <p class="exp"><span class="tag">Result:</span> my first prediction was wrong – the VM was <b>replaced</b>. My second prediction was right – the IP did not change.</p>
+        <p class="exp">
+          <span class="tag">Explanation:</span> the page text is part of <code>user_data</code>
+          (the filled-in <code>cloud-init.yaml</code>), and the plan marks <code>user_data</code> with
+          <code># forces replacement</code>. cloud-init runs only at the <b>first boot</b>. The running VM
+          already had its first boot, so a new <code>user_data</code> would never be used. The only way
+          to get the new text is a new VM. "Declarative" means I describe the end result and OpenTofu
+          decides how to get there – sometimes the only way is to replace the resource. The good thing
+          is that the plan tells me before it happens. There was a short outage of about 20 seconds.
+        </p>
+        <p class="exp">
+          The IP stayed the same because the floating IP is attached to the <b>port</b>
+          (<code>port_id = openstack_networking_port_v2.web.id</code>), not to the VM. The plan replaced
+          only the VM, so the port and the floating IP did not change, and the new VM was plugged into
+          the same port.
+        </p>
+
+        <h4>Option B – allow HTTPS too</h4>
+        <p class="exp"><span class="tag">Prediction:</span> 1 to add, 0 to change, 0 to destroy. The VM will not be replaced. The page will work over https://.</p>
+        <p>I added a new rule to <code>main.tf</code>, a copy of the HTTP rule with port 443:</p>
+        <pre>resource "openstack_networking_secgroup_rule_v2" "https" {
+  security_group_id = openstack_networking_secgroup_v2.web.id
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 443
+  port_range_max    = 443
+  remote_ip_prefix  = "0.0.0.0/0"
+}</pre>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/add-https.png" alt="Plan for the HTTPS rule" loading="lazy"><figcaption>Plan: 1 to add, 0 to change, 0 to destroy. The VM is not in the plan at all.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/apply-https.png" alt="Apply of the HTTPS rule" loading="lazy"><figcaption>Apply: 1 added in 2 seconds, the VM did not change.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/https-refused.png" alt="https:// in the browser" loading="lazy"><figcaption>https://128.214.255.106 – ERR_CONNECTION_REFUSED.</figcaption></figure>
+        <p class="exp"><span class="tag">Result:</span> the plan was exactly as predicted, but HTTPS does <b>not</b> work.</p>
+        <p class="exp">
+          <span class="tag">Explanation:</span> compared to option A, this change does not touch the VM.
+          The new rule refers only to the security group. The security group and the port do not change,
+          so the VM at the end of the chain has no reason to change either, and there is no outage.
+          A firewall rule can be changed on a running system, <code>user_data</code> cannot.
+        </p>
+        <p class="exp">
+          HTTPS does not work because the firewall is only the gate. Apache listens only on port 80, and
+          nothing listens on port 443. The error is "connection <b>refused</b>": my request got through the
+          firewall to the VM, and the VM said no. For HTTPS, Apache would need the SSL module and a
+          certificate (for example from Let's Encrypt, which needs a domain name). That is configuration
+          inside the VM (cloud-init), not provisioning (OpenTofu).
+        </p>
+
+        <h3>9. Experiment 2 – Drift</h3>
+
+        <h4>Part 1 – a deleted rule</h4>
+        <p class="exp"><span class="tag">Prediction:</span> tofu plan will notice that the rule is missing and warn me.</p>
+        <p>In the web interface I deleted the HTTP (port 80) rule from <code>week7-web-sg</code>. The page stopped loading:</p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/http-deleted.png" alt="Timeout after deleting the HTTP rule" loading="lazy"><figcaption>ERR_CONNECTION_TIMED_OUT. This time it is a timeout, not refused: the firewall drops the request silently.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/plan-after-delete-rule.png" alt="Plan after deleting the rule" loading="lazy"><figcaption>tofu plan: the http rule will be created. 1 to add.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/plan-reopen-http.png" alt="Apply that fixes the drift" loading="lazy"><figcaption>tofu apply created the rule again. The new rule has a new ID (6f8c108c…).</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/fix-http.png" alt="Page works again" loading="lazy"><figcaption>The page works again – fixed by code, not by clicking.</figcaption></figure>
+        <p class="exp"><span class="tag">Result:</span> OpenTofu noticed the missing rule. It did more than warn – it planned to create the rule again.</p>
+
+        <h4>Part 2 – an added rule</h4>
+        <p class="exp"><span class="tag">Prediction:</span> OpenTofu may notice the new rule, but an extra rule should not bother it, so it will not try to delete it.</p>
+        <p>In the web interface I added a rule for TCP port 8080 from 0.0.0.0/0 to the same security group:</p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/new-rule.png" alt="Rules with the manual 8080 rule" loading="lazy"><figcaption>The security group with my manual rule on port 8080.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/plan-rule-8080.png" alt="Plan with the manual rule" loading="lazy"><figcaption>tofu plan: No changes. Your infrastructure matches the configuration.</figcaption></figure>
+        <p class="exp"><span class="tag">Result:</span> OpenTofu did <b>not notice</b> the new rule at all. After the test I deleted the manual rule.</p>
+        <p class="exp">
+          <span class="tag">Explanation:</span> OpenTofu only checks the resources that are in its
+          <b>state file</b>. In the "Refreshing state…" lines it asks cPouta about each ID it knows. In
+          part 1 it asked about the HTTP rule's ID, cPouta said it does not exist, and the code says it
+          should exist, so it planned to create it. In part 2 the new rule has an ID that OpenTofu never
+          saw, so it never asks about it. It is invisible – the same as my week 1 VM.
+        </p>
+        <p class="exp">
+          This is dangerous: port 8080 was open to the whole internet, it was not in the code, and the
+          plan said everything was fine. That is why, once something is managed with IaC, changes should
+          be made only through the code.
+        </p>
+
+        <h3>10. Experiment 3 – Destroy and re-create</h3>
+        <p class="exp"><span class="tag">Prediction:</span> all 8 resources (including the HTTPS rule) will be destroyed, but not the project network. They will disappear in the order they are written in the file (I was not sure). The IP will be the same after the rebuild.</p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/tofu-destroy.png" alt="tofu destroy output" loading="lazy"><figcaption>tofu destroy: 8 destroyed.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/week7-missing-instance.png" alt="Instances after destroy" loading="lazy"><figcaption>Only VM_week1 is left.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/week7-missing-security-group.png" alt="Security groups after destroy" loading="lazy"><figcaption>week7-web-sg is gone.</figcaption></figure>
+        <p class="exp"><span class="tag">Result:</span> 8 destroyed and the network stayed – correct. The order was <b>not</b> the order in the file:</p>
+        <div class="table-wrap"><table>
+          <tr><th>Wave</th><th>Destroyed</th><th>Why now</th></tr>
+          <tr><td>1 (at the same time)</td><td>ssh, http and https rules, floating IP, VM</td><td>nothing else refers to them</td></tr>
+          <tr><td>2</td><td>key pair, port</td><td>they waited until the VM and the floating IP were gone</td></tr>
+          <tr><td>3 (last)</td><td>security group</td><td>the rules and the port referred to it</td></tr>
+        </table></div>
+        <p class="exp">
+          <span class="tag">Explanation:</span> the order comes from the references between the blocks,
+          not from the file. In <code>main.tf</code> the security group is the second block, but it was
+          destroyed last. When creating, the things that others depend on come first; when destroying it
+          is exactly the other way round. Things that do not depend on each other are destroyed in
+          parallel, which is why it was so fast. The project network survived because it is only a
+          <code>data</code> block: OpenTofu did not create it, so it does not destroy it.
+        </p>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/tofu-built-new.png" alt="Rebuild with tofu apply" loading="lazy"><figcaption>time tofu apply: 8 added in 20.7 seconds (including typing yes). Security group and key pair first, then rules and port, then floating IP and VM.</figcaption></figure>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/works-again.png" alt="Page after the rebuild" loading="lazy"><figcaption>Two minutes after the apply the page works again, with no manual steps.</figcaption></figure>
+        <p class="exp">
+          <span class="tag">IP address:</span> the IP is again 128.214.255.106, so my prediction was right,
+          but partly by luck. The floating IP has a new ID (63596e86… before, 4e856b0d… after). It is a
+          new floating IP that got the same address back from the public pool, because nobody else took
+          it in the meantime. With the <code>web_url</code> output a changing IP does not matter much,
+          because OpenTofu prints the new URL after every apply. If the address had to stay the same (for
+          example for a domain name), I would create the floating IP outside this code and only read it
+          with a <code>data</code> block, like the project network, or use a DNS name.
+        </p>
+
+        <h3>11. Reflection – by hand (week 1) vs. from code (week 7)</h3>
+        <figure><img src="https://a3s.fi/swift/v1/week7-docs/VM-week1.png" alt="Week 1 VM in cPouta" loading="lazy"><figcaption>My week 1 VM, built by hand: the image name is unknown (-) and the security group allows SSH from 0.0.0.0/0, plus ports 8081 and 443 that I opened while testing.</figcaption></figure>
+        <div class="table-wrap"><table>
+          <tr><th></th><th>Week 1 – by hand</th><th>Week 7 – from code</th></tr>
+          <tr><td>Effort</td><td>about 4 hours of clicking, SSH and installing</td><td>a few hours the first time to write the code, then 20.7 s apply + about 1 min cloud-init</td></tr>
+          <tr><td>Repeatability</td><td>I could not repeat it exactly; today I cannot even see which image I used</td><td>destroy + apply gives the same server every time</td></tr>
+          <tr><td>Security</td><td>SSH open to the whole internet; cPouta made my private key; extra ports left open</td><td>SSH only from my IP (with validation); private key never left my laptop; only the ports in the code; credentials, state and personal values not in Git</td></tr>
+          <tr><td>Documentation</td><td>only in my head and in screenshots</td><td>the code is the documentation, and Git shows every change</td></tr>
+        </table></div>
+        <p>
+          For me the biggest difference was not speed but knowing exactly what exists. Building by hand
+          makes sense for a quick one-time test or for learning how a service works – I would not
+          understand the code this week without the week 1 clicking. Code makes sense for anything I will
+          build more than once, share with other people, or need to rebuild after a failure. The drift
+          experiment also showed the limit: IaC only works if everybody makes changes through the code.
+        </p>
+
+        <h3>12. Problems and solutions</h3>
+        <p><b>a) Problem:</b> <code>brew install opentofu</code> failed, because I do not have Homebrew.<br>
+        <b>Solution:</b> I downloaded the OpenTofu binary for macOS (arm64) from the GitHub releases into <code>~/bin</code> and added it to my PATH.</p>
+        <p><b>b) Problem:</b> my first <code>.gitignore</code> was called <code>.gitignor</code> (missing "e"), so Git would not use it.<br>
+        <b>Solution:</b> I saw it in <code>git status</code> before I downloaded <code>clouds.yaml</code>, and renamed it. Since then I check <code>git status</code> before every commit.</p>
+        <p><b>c) Problem:</b> <code>tofu validate</code> showed only the first few missing variables, not all eight.<br>
+        <b>Solution:</b> I searched <code>main.tf</code> for <code>var.</code> to get the full list.</p>
+        <p><b>d) Problem:</b> my first <code>variables.tf</code> had <code>default = ""</code> for the three required variables, so OpenTofu would not stop if a value was missing.<br>
+        <b>Solution:</b> I removed those defaults and added the validation rules.</p>
+        <p><b>e) Problem:</b> I did not know where <code>address</code> for the output comes from, because it is not in <code>main.tf</code>.<br>
+        <b>Solution:</b> it is an attribute from the provider documentation ("Attributes Reference"), filled in by cPouta after creation.</p>
+        <p><b>f) Problem:</b> after opening port 443, https:// still did not work.<br>
+        <b>Solution:</b> not a bug: the firewall was open, but Apache does not listen on 443 and has no certificate. That would be a cloud-init (configuration) task.</p>
+        <p><b>g) Problem:</b> my project had only one free floating IP (1 of 2 used by the week 1 VM).<br>
+        <b>Solution:</b> it was enough. I did not create anything else by hand, so OpenTofu always had one free IP.</p>
+      </section>
+
+      <section>
+        <h2>Part A – Questions</h2>
+        <p>Coming soon.</p>
+      </section>
+    </main>
+  </body>
+</html>
